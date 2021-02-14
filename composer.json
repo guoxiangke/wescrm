@@ -17,6 +17,7 @@
         "laravel/sanctum": "^2.6",
         "laravel/tinker": "^2.5",
         "livewire/livewire": "^2.0",
+        "spatie/laravel-activitylog": "^3.16",
         "spatie/laravel-schemaless-attributes": "^1.8"
     },
     "require-dev": {
