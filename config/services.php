@@ -30,4 +30,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'weiju' =>[
+        'phone' => env('WEIJU_PHONE', ''),
+        'password' => env('WEIJU_PASSWORD', ''),
+        'baseUri' => env('WEIJU_ENDPOINT', ''),
+        'callbackUri' => env('WEIJU_CALLBACK',''),
+    ],
+
 ];

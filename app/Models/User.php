@@ -11,8 +11,20 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Plank\Metable\Metable;
 class User extends Authenticatable
-{
+{   
+    use Metable;
+	use SoftDeletes;
+    use LogsActivity;
+    protected static $logOnlyDirty = true;
+    protected static $logAttributes = ['email', 'email_verified_at'];
+    // protected static $logAttributesToIgnore = [ 'none'];
+    // only the `deleted` event will get logged automatically
+    protected static $recordEvents = ['updated']; //created, updated, deleted
+
     use HasApiTokens;
     use HasFactory;
     use HasProfilePhoto;

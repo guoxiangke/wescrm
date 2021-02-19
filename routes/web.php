@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\WeijuController;
+use App\Http\Livewire\Weixin;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,6 +18,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::post('/incoming/webhooks/weiju', [WeijuController::class, 'listen']);
+
+Route::group(['prefix'=>'channels', 'middleware' => ['auth:sanctum', 'verified']], function () {
+    Route::get('/weixin', Weixin::class);
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {

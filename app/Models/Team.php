@@ -41,4 +41,9 @@ class Team extends JetstreamTeam
         'updated' => TeamUpdated::class,
         'deleted' => TeamDeleted::class,
     ];
+
+    // 1:1 
+    public function bot(){
+        return $this->hasOne(WechatBot::class);
+    }
 }

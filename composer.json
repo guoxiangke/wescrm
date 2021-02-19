@@ -17,11 +17,12 @@
         "laravel/sanctum": "^2.6",
         "laravel/tinker": "^2.5",
         "livewire/livewire": "^2.0",
+        "plank/laravel-metable": "^5.0",
         "spatie/laravel-activitylog": "^3.16",
-        "spatie/laravel-permission": "^4.0",
-        "spatie/laravel-schemaless-attributes": "^1.8"
+        "spatie/laravel-permission": "^4.0"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "^3.5",
         "beyondcode/laravel-query-detector": "^1.4",
         "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
@@ -41,6 +42,7 @@
         }
     },
     "autoload": {
+        "files": ["app/Helpers/helpers.php"],
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",

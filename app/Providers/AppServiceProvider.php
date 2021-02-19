@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-
+use App\Services\Weiju;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -14,6 +14,9 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        $this->app->singleton(Weiju::class, function() {
+            return new Weiju();
+        });
     }
 
     /**
