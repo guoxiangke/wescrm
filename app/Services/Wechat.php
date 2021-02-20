@@ -20,7 +20,7 @@ class Wechat {
         $weiju = app(Weiju::class);
         $this->http = Http::withOptions(['base_uri' => $weiju->baseUri])
             ->withHeaders([
-                'token' => Cache::get('weiju_token', ''),
+                'token' => option('weiju.token'),//Cache::get('weiju_token', ''),
                 "content-type" => "application/json"
             ]);
         $this->Wxid = $Wxid;

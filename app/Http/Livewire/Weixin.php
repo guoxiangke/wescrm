@@ -80,12 +80,14 @@ class Weixin extends Component
             // cache token
             if(isset($response['data']['apikey'])) {
                 $token = $response['data']['apikey'];
-                Cache::put('weiju_token', $token);
-
+                // 使用option可靠存储，因为Cache可能失效！
+                if(!option_exists('weiju.token')){
+                    option(['weiju.token' => $token]);
+                }
                 $ClientsCounts = $response['data']['num'];
                 $ExpireAt = $response['data']['expiretime'];
-                
-                //TODO  Cache::put('weiju_expired_at', $token);
+
+                option(['weiju.expired_at' => $ExpireAt]); //TODO Show in UI and check!
             }
 
             

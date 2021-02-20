@@ -28,7 +28,7 @@ class Weiju {
     public function getQR($Wxid = ''):Response {
         $endPoint = "/foreign/message/scanNew";
         $headers = [
-            'token' => Cache::get('weiju_token',''),
+            'token' => option('weiju.token'),//Cache::get('weiju_token',''),
             "content-type" => "application/json"
         ];
 
