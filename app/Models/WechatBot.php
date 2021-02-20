@@ -14,9 +14,11 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Plank\Metable\Metable;
+use Mvdnbrk\EloquentExpirable\Expirable;
 
 class WechatBot extends Model
 {
+    use Expirable; // 账户有效期 https://github.com/mvdnbrk/laravel-model-expires/
     use Metable;
     use HasFactory;
     protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at']; // If you choose to unguard your model, you should take special care to always hand-craft the arrays passed to Eloquent's fill, create, and update methods: https://laravel.com/docs/8.x/eloquent#mass-assignment-json-columns
