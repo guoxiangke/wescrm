@@ -65,9 +65,6 @@ COPY --from=frontend /app/mix-manifest.json /var/www/html/mix-manifest.json
 COPY docker/start.sh /usr/local/bin/start
 WORKDIR /var/www/html
 
-RUN mkdir -p /var/www/html/storage/app/public/loginqr \
-  && mkdir -p /var/www/html/storage/app/public/referrals
-
 RUN chown -R www-data:www-data storage bootstrap/cache \
   && chmod -R ug+rwx storage bootstrap/cache \
   && chmod u+x /usr/local/bin/start
