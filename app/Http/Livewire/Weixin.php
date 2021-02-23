@@ -16,6 +16,7 @@ class Weixin extends Component
     public $who;
     public $msg;
     public $teamName;
+    public $expireAt;
     // public $teamId; //TODO private!! 否则 会有安全风险
     // private $wechatBot; // https://laravel-livewire.com/docs/2.x/properties
     // private $wechat; // protected and private properties DO NOT persist between Livewire updates. In general, you should avoid using them for storing state.
@@ -37,12 +38,25 @@ class Weixin extends Component
         $this->teamId = $team->id;
         $this->teamName = $team->name;
 
+        // Token
+        $this->expireAt = option('weiju.expired_at', '0000-00-00 00:00:00');
+        // Team
+            // $team->users()->attach(
+            //     $newTeamMember, ['role' => $role]
+            // );
+
         $wechatBot = WechatBot::firstwhere('team_id', $this->teamId);
         if($wechatBot){ //说明已经绑定过了！
             $this->wxid = $wechatBot->wxid;
             $wechat = new Wechat($this->wxid);
             // test 
             // $wechatBot->addBySearch('calebxyz')->json();
+        }
+
+        if($response->failed()){
+            $this->msg = "系统错误：".$response['msg']." ， # 请等待10分钟再试!";
+            Log::error(__METHOD__, [__LINE__, $response]);
+            return;
         }
         if($response['code'] == 0) { // {"code":0,"msg":"登录的微信号已经超过数量限制！"}
             if(isset($wechat)){
@@ -74,7 +88,7 @@ class Weixin extends Component
 
         //TODO 判断是否还有可登录Client的额度（付费是否过期）
     
-        if($response->ok() && $response['code'] == 1)
+        if($response['code'] == 1)
         {
 
             // cache token
@@ -87,7 +101,8 @@ class Weixin extends Component
                 $ClientsCounts = $response['data']['num'];
                 $ExpireAt = $response['data']['expiretime'];
 
-                option(['weiju.expired_at' => $ExpireAt]); //TODO Show in UI and check!
+                $this->expireAt = $ExpireAt;
+                option(['weiju.expired_at' => $ExpireAt]);
             }
 
             
@@ -108,8 +123,6 @@ class Weixin extends Component
             }
             
         }
-        
-        $this->msg = "系统错误：".$response['msg']." ， # 请等待10分钟再试!";
     }
 
 
