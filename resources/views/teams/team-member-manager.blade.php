@@ -128,6 +128,11 @@
                 <!-- Team Member List -->
                 <x-slot name="content">
                     <div class="space-y-6">
+                        @php
+                            // N-1 
+                            // TODO ->diffForHumans()
+                            $expiresAt = App\Models\Membership::where('team_id', $team->id)->pluck('expires_at','user_id')->all();
+                        @endphp
                         @foreach ($team->users->sortBy('name') as $user)
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
@@ -146,6 +151,10 @@
                                             {{ Laravel\Jetstream\Jetstream::findRole($user->membership->role)->name }}
                                         </div>
                                     @endif
+
+                                    <div class="ml-2 text-sm text-gray-400">
+                                        过期时间： {{ $expiresAt[$user->id] }}
+                                    </div>
 
                                     <!-- Leave Team -->
                                     @if ($this->user->id === $user->id)

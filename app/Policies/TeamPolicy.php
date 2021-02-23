@@ -41,7 +41,9 @@ class TeamPolicy
      */
     public function create(User $user)
     {
-        return true;
+        // 其他用户，不允许手动创建。仅第一个注册的用户会自动创建 
+        // @see App\Actions\Fortify\CreateNewUser
+        return $user->id==1;
     }
 
     /**

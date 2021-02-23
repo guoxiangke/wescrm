@@ -11,7 +11,11 @@ use Laravel\Jetstream\Events\InvitingTeamMember;
 use Laravel\Jetstream\Jetstream;
 use Laravel\Jetstream\Mail\TeamInvitation;
 use Laravel\Jetstream\Rules\Role;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
+use Laravel\Jetstream\Events\AddingTeamMember;
+use Laravel\Jetstream\Events\TeamMemberAdded;
 class InviteTeamMember implements InvitesTeamMembers
 {
     /**
@@ -31,12 +35,25 @@ class InviteTeamMember implements InvitesTeamMembers
 
         InvitingTeamMember::dispatch($team, $email, $role);
 
-        $invitation = $team->teamInvitations()->create([
-            'email' => $email,
-            'role' => $role,
-        ]);
+        // $invitation = $team->teamInvitations()->create([
+        //     'email' => $email,
+        //     'role' => $role,
+        // ]);
 
-        Mail::to($email)->send(new TeamInvitation($invitation));
+        // Mail::to($email)->send(new TeamInvitation($invitation));
+
+        $newTeamMember = User::firstOrCreate(
+            ['email' => $email],
+            ['name' => explode("@", $email)[0], 'password' => Hash::make('password'), 'current_team_id' => $team->id]
+        );
+
+        AddingTeamMember::dispatch($team, $newTeamMember);
+
+        $team->users()->attach(
+            $newTeamMember, ['role' => $role, 'expires_at'=> now()->addDays(3)]
+        );
+
+        TeamMemberAdded::dispatch($team, $newTeamMember);
     }
 
     /**

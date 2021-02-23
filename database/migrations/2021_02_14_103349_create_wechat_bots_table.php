@@ -27,11 +27,6 @@ class CreateWechatBotsTable extends Migration
             $table->string('signature')->default('');
             $table->string('bigHead')->default('');
             
-            $table->expires()->comment('有效期');
-            // $subscription->expires_at = now()->addMinutes(10);
-            // if ($subscription->expired()) {
-            //     //
-            // }
             $table->softDeletes();
             
             $table->timestamps();
