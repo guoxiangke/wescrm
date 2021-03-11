@@ -19,7 +19,7 @@ class WechatContentSeeder extends Seeder
             $content = "主动发送 文本/链接/名片/图片/视频 消息到好友/群";
             $contents[] = ['type'=>'text', 'content'=>['data'=>compact('content')]];
 
-            $content = "send text with template :nickName";
+            $content = "send text with template name  好友自己设置的昵称: :name 备注或昵称: :remark 客服座席名字: :seat 第:no号好友";
             $contents[] = ['type'=>'template', 'content'=>['data'=>compact('content')]];
             
             $content = "https://www.upyun.com/static/logos/dangdang.png"; $image = $content;

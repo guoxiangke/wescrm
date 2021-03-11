@@ -89,7 +89,7 @@ class WechatContent extends Component
     public function testSend()
     {
         $wchatContent = Model::findOrFail($this->contentId);//TODO validate 必需是自己的内容
-        $this->wechatBot->send(["bluesky_still"], $wchatContent); // "filehelper",
+        $this->wechatBot->send(["filehelper"], $wchatContent);
     }
 
     //TODO two forms validate
