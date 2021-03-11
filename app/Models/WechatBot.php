@@ -155,7 +155,7 @@ class WechatBot extends Model
             if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
                 // 主动发送消息，需要主动记录 客服座席 user_id to message
                 $wechatBot = WechatBot::firstWhere('team_id', $teamId);
-                $contact = WechatContact::firstWhere('userName', $wxid);
+                $contact = WechatContact::where('userName', $wxid)->firstOrFail(); //初始化还未完成，就发送消息了！
                 $data = [
                     // 'msgId'=>NULL,
                     'seat_user_id' => $seatUserId, // 座席 用户ID
