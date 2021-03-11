@@ -16,7 +16,7 @@ class CreateWechatContactsTable extends Migration
         Schema::create('wechat_contacts', function (Blueprint $table) {
             $table->id();
             
-            $table->string('userName')->index()->unique()->comment('friend: Wxid, public: gh_xxx, group: 123@chatroom');
+            $table->string('userName')->index()->unique()->comment('friend: Wxid, public: gh_xxx, group: 123@chatroom, work:xx@@im.chatroom');
             $table->string('nickName')->default('')->comment('friend都有');
             $table->string('aliasName')->default('')->comment('public才有');
             // $table->string('labelIdList')->default('')->comment('friend标签id');

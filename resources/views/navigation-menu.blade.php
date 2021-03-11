@@ -15,6 +15,21 @@
                     <x-jet-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('channel.wechat.weixin') }}" :active="request()->routeIs('channel.wechat.weixin')">
+                        Weixin
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('channel.wechat.content') }}" :active="request()->routeIs('channel.wechat.content')">
+                        Content
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('channel.wechat.autoreply') }}" :active="request()->routeIs('channel.wechat.batch')">
+                        AutoReply
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('channel.wechat.contact') }}" :active="request()->routeIs('channel.wechat.contact')">
+                        Contact
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('channel.wechat.webchat') }}" :active="request()->routeIs('channel.wechat.webchat')">
+                        Webchat
+                    </x-jet-nav-link>
                 </div>
             </div>
 

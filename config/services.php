@@ -34,7 +34,6 @@ return [
         'phone' => env('WEIJU_PHONE', ''),
         'password' => env('WEIJU_PASSWORD', ''),
         'baseUri' => env('WEIJU_ENDPOINT', ''),
-        'callbackUri' => env('WEIJU_CALLBACK',''),
     ],
 
 ];

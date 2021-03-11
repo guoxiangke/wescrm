@@ -2,23 +2,61 @@
 
 namespace App\Http\Livewire;
 
-use App\Jobs\InitWechat;
+use App\Jobs\WeixinInit;
 use Livewire\Component;
 use App\Services\Wechat;
 use App\Services\Weiju;
 use App\Models\WechatBot;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Models\Membership;
 
 class Weixin extends Component
 {
     public $qr;
+    public $showRemind;
     public $who;
     public $msg;
     public $teamName;
-    public $expireAt;
-    // public $teamId; //TODO private!! 否则 会有安全风险
-    // private $wechatBot; // https://laravel-livewire.com/docs/2.x/properties
+    public $expiresAt; // 当前bot的有效期
+    public $allExpiresAt; //weiju token过期时间
+    public $loginAt;
+    
+
+    public $wechatAutoReply;//boolean
+    public $wechatListenRoom;
+    public $wechatListenRoomAll;
+    public $wechatListenGh;
+
+    public $wechatTuingReply;//boolean
+    public $wechatTulingKey;
+    public $wechatTulingId;
+    
+    public $wechatWebhook;//boolean
+    public $wechatWebhookUrl;
+    public $wechatWebhookSecret;
+
+    public $wechatWeiju;//boolean
+    public $wechatWeijuWebhook;
+    
+    
+    public function updated($name,$value)
+    {
+        if(in_array($name,['wechatWeiju','wechatWebhook','wechatWebhookUrl','wechatWebhookSecret','wechatTuingReply','wechatTulingKey','wechatTulingId','wechatAutoReply','wechatListenRoom','wechatListenRoomAll','wechatListenGh'])){
+            $this->wechatBot->setMeta($name, $value);
+        }
+    }
+
+    public function updatedWechatWeijuWebhook($value){
+        if(filter_var($value, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED)){ // url validate
+            $this->wechatBot->setMeta('wechatWeijuWebhook', $value);
+            $wechat = new Wechat($this->wxid);
+            $response = $wechat->setCallBackUrl($value);
+        }
+    }
+
+    // public $listened_rooms;
+    public $wechatBot; // https://laravel-livewire.com/docs/2.x/properties
     // private $wechat; // protected and private properties DO NOT persist between Livewire updates. In general, you should avoid using them for storing state.
     public $wxid;  // 和前端部分相关的$Wxid全部改成小写$wxid @see WechatBot::getWxidAttribute();
 
@@ -29,28 +67,73 @@ class Weixin extends Component
             $this->msg = "系统错误， 请刷新再试！";
             return ;
         }
-        // dd($response->body());// "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
+        // dd($response->body());
+        // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
+        // "{"code":1,"msg":"登录成功","num":2,"expiretime":"2021-03-02 11:21:16","data":{"apikey":"exxx
         
         // 显示 Team 关系
         // 用户必需属于一个team，且以此身份浏览 currentTeam
+        /** @var $user \App\Models\User **/
         $user = auth()->user();
         $team = $user->currentTeam;
-        $this->teamId = $team->id;
         $this->teamName = $team->name;
 
-        // Token
-        $this->expireAt = option('weiju.expired_at', '0000-00-00 00:00:00');
-        // Team
-            // $team->users()->attach(
-            //     $newTeamMember, ['role' => $role]
-            // );
+        // 付费管理2: 座席过期
+        if(!$user->ownsTeam($team)){
+            $membership = Membership::firstWhere(['team_id'=>$team->id,'user_id'=>$user->id]);
+            // dd($membership->expires_at);
+            if($membership->expires_at < now()){
+                return $this->msg = "对不起，座席使用时间已过期，您暂时无法管理Bot，请与Bot管理员联系付费使用！";
+            }
+        }
 
-        $wechatBot = WechatBot::firstwhere('team_id', $this->teamId);
+        $wechatBot = WechatBot::firstwhere('team_id', $team->id);
         if($wechatBot){ //说明已经绑定过了！
+            $this->wechatBot = $wechatBot;
+
+            $this->wechatAutoReply = $wechatBot->getMeta('wechatAutoReply', false);
+            $this->wechatListenRoom = $wechatBot->getMeta('wechatListenRoom', false);
+            $this->wechatListenRoomAll = $wechatBot->getMeta('wechatListenRoomAll', false);
+            $this->wechatListenGh = $wechatBot->getMeta('wechatListenGh', false); // 默认不接收 公众号消息
+            
+            $this->wechatTuingReply = $wechatBot->getMeta('wechatTuingReply', false);
+            $this->wechatTulingKey = $wechatBot->getMeta('wechatTulingKey', '');
+            $this->wechatTulingId = $wechatBot->getMeta('wechatTulingId', '');
+            
+            $this->wechatWebhook = $wechatBot->getMeta('wechatWebhook', false);
+            $this->wechatWebhookUrl = $wechatBot->getMeta('wechatWebhookUrl', route('webhook.test'));
+            $this->wechatWebhookSecret = $wechatBot->getMeta('wechatWebhookSecret', 'xxx');
+
+            
+            $this->wechatWeiju = $wechatBot->getMeta('wechatWeiju', false);
+            $this->wechatWeijuWebhook = $wechatBot->getMeta('wechatWeijuWebhook', route('webhook.weiju'));
+            
+            // $this->listened_rooms = $wechatBot->getMeta('listened_rooms', ['xxxx@chatroom']); // 只接收少数几个群的群消息
+            
             $this->wxid = $wechatBot->wxid;
             $wechat = new Wechat($this->wxid);
             // test 
             // $wechatBot->addBySearch('calebxyz')->json();
+
+            $this->expiresAt = $wechatBot->expires_at->diffForHumans();
+            $this->allExpiresAt = option('weiju.expired_at');
+            $this->loginAt = optional($wechatBot->login_at)->diffForHumans();
+            
+            $responseWho = $wechat->who();
+            // dd($responseWho->body()); // "{"code":-13,"msg":"您已退出微信","data":{}}"
+            // {"code":1000,"msg":"成功","data":{"userName":"wxid_xx
+            if($responseWho->ok() && $responseWho['code'] == 1000){ // 说明已经登录了
+                $this->who = $responseWho['data'];
+                // 付费管理1 bot过期 
+                // TODO: schedule check! 如果用户一直不进这个页面，那么一直保持登录吗？！
+                if($wechatBot->expired()){
+                    $this->msg = "对不起，订阅到期，您暂时无法管理Bot，请与管理员联系付费使用！";
+                    $wechat->send("sendText", ['ToWxid'=>'filehelper', 'content'=>$this->msg]);
+                    $wechat->logout();
+                }
+                return ;
+            }
+
         }
 
         if($response->failed()){
@@ -58,116 +141,65 @@ class Weixin extends Component
             Log::error(__METHOD__, [__LINE__, $response]);
             return;
         }
-        if($response['code'] == 0) { // {"code":0,"msg":"登录的微信号已经超过数量限制！"}
-            if(isset($wechat)){
-                // // 你要实时自己调心跳接口
-                // $response = $wechat->isOnline();
-                // Log::debug(__METHOD__, ["isOnline", $response]);
-                
-                $response = $wechat->who();
-                // dd($response->body()); // "{"code":-13,"msg":"您已退出微信","data":{}}"
-                if($response->ok() && $response['code'] == 1000){ // 说明已经登录了
-                    $this->who = $response['data'];
-                }else{
-                    $this->msg = "您已主动退出iPad登录，需要等待5分钟后再试!";
-                    Log::debug(__METHOD__, ["失败", $response]);
-                }
-            }else{
-                Log::debug(__METHOD__, ["失败", $response]);
-                $this->msg = "Error:初始化失败！可能的原因：1.您无权限绑定（切换到bot所在的Team），2.请确认手机微信已退出iPad登录 后，等待3分钟再次刷新!";
-            }
-            return;
-        }
+        
 
         // 第一次登录流程：
             // 1. 判断是否获取到token or return Failed Msg 给管理后台.
             // 2. 获得token后，返回 到期时间，可登录微信数量 给管理后台
             // 3.
-
-        $currentLogedInClientsCount = 0; //TODO
-
-        //TODO 判断是否还有可登录Client的额度（付费是否过期）
-    
-        if($response['code'] == 1)
+        if($response['code'] == 1) // && isset($response['data']['apikey'])
         {
-
-            // cache token
-            if(isset($response['data']['apikey'])) {
-                $token = $response['data']['apikey'];
+            {// cache token
                 // 使用option可靠存储，因为Cache可能失效！
                 if(!option_exists('weiju.token')){
-                    option(['weiju.token' => $token]);
+                    option(['weiju.token' => $response['data']['apikey']]);
                 }
-                $ClientsCounts = $response['data']['num'];
-                $ExpireAt = $response['data']['expiretime'];
+                $maxClientsCounts = $response['data']['num'];
+                $expiresAt = $response['data']['expiretime'];
 
-                $this->expireAt = $ExpireAt;
-                option(['weiju.expired_at' => $ExpireAt]);
+                $this->expiresAt = $expiresAt;
+                option(['weiju.expired_at' => $expiresAt, 'weiju.clients' => $maxClientsCounts]);
             }
-
-            
-            if($ClientsCounts > $currentLogedInClientsCount && $ExpireAt > now()){
+            // 如果weiju没有过期，且 还有剩余 可登录的bot配额
+            ;
+            if($expiresAt > now() && $maxClientsCounts > WechatBot::whereNotNull('login_at')->count()){
+                $this->showRemind = true;
                 // 若传入 wxid 将会弹窗登录,作为第二次登录参数，稳定不掉线
                 $response = $this->wxid?$weiju->getQR($this->wxid):$weiju->getQR();
-
-                $this->msg = "1.拿起手机2.打开手机微信3.首次绑定需扫码4.绑定后再次登录手机微信会收到弹窗5.在“iPad微信登录确认页面”点击登录5.耐心等待手机微信顶部显示“iPad登录”后 6.系统将进入后台初始化数据阶段，此过程需要3～5分钟，请等待5分钟后再刷新本页";
+                // 返回二维码，默认上一行一定能成功
+                $this->qr = $response['data']['qrCodeUrl']; // "http://weixin.qq.com/x/${wId}";
+                // dd($response->json());
+                $this->msg = $response['msg'] .  " 后台队列处理中，请按下面说明步骤操作，耐心等待3～4分钟后再刷新";
                 // 启动后台队列任务，循环直到 扫码确认成功！
-                
-                Cache::put('weiju_wId', $response['data']['wId'], now()->addMinutes(5));
-                InitWechat::dispatch($response['data']['wId'], $team)->delay(now()->addSecond(3));
+                Cache::put('weiju_wId', $response['data']['wId'], now()->addMinutes(5)); //防止多次刷新，多个Job
+                WeixinInit::dispatch($response['data']['wId'], $team, $user->id)->delay(now()->addSecond(3));
 
-                // 返回二维码
-                $this->qr = $response['data']['qrCodeUrl'];
-                // "http://weixin.qq.com/x/${wId}";
                 return ;
             }
             
         }
+
+        // if($responseWho['code'] == -13){ // "{"code":-13,"msg":"您已退出微信","data":{}}"
+        //     return $this->msg = "主动退出iPad登录后，需等5分钟再试!";
+        // }
+        Log::debug(__METHOD__, [$response]);
+        // if($response['code'] == 0){
+            return $this->msg = "主动退出iPad登录后，需等5分钟再试! 或" . $response['msg']; // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
+        // }
     }
 
 
     public function logout()
     {
         $wechat = new Wechat($this->wxid);
-        $response = $wechat->who();
-        $this->msg = "登出：" . $response['msg']. "请在手机上确认 退出iPad微信 即可。";
+        $response = $wechat->logout();
+        $this->wechatBot->update(['login_at'=>null]);
+        $this->msg = "登出：" . $response['msg']. ", 请在手机上确认 退出iPad微信 即可。";
 
         $this->qr = null;
         $this->who = null;
         $this->wxid = null;
         $this->teamName = null;
-    }
-
-    public function send()
-    {
-        $user = auth()->user();
-        $team = $user->currentTeam;
-        $wechatBot = WechatBot::firstwhere('team_id', $team->id);
-
-        $Wxid = "filehelper"; // 文件传输助手
-        $room = '5829025039@chatroom';
-        
-        $content = "主动发送 文本/链接/名片/图片/视频 消息到好友/群";
-        $wechatBot->send($Wxid, $content);
-        $response = $wechatBot->send($room, $content);
-        $this->msg = $response['msg'];
-        
-        $url = ['title'=>'测试链接到百度', 'url'=>'https://weibo.com', 'description'=>'其实我放的是微博的链接', 'thumbUrl'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"];
-        $wechatBot->send($Wxid, $url);
-        $wechatBot->send($room, $url);
-
-        $card = ['nameCardId'=>$Wxid, 'nickName'=>'nothing'];
-        $wechatBot->send($Wxid, $card);
-        $wechatBot->send($room, $card);
-
-        $image = "https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg";
-        $wechatBot->send($Wxid, $image);
-        $wechatBot->send($room, $image);
-        
-        $video = ['path'=>"https://abc.yilindeli.com/teach/LevelTestMaterial/0zhumuTestFiles/test.mp4", 'thumbPath'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"];
-        $wechatBot->send($Wxid, $video);
-        $wechatBot->send($room, $video);
-
     }
 
     public function render()

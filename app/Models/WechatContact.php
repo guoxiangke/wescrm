@@ -16,7 +16,6 @@ class WechatContact extends Model
 
 	use SoftDeletes;
 
-    // 0:friend好友,1:group群,2:public公众号,3:非好友群成员
     const TYPES = [
         'public'=>0, // 0
         'friend'=>1, // 1
@@ -24,16 +23,23 @@ class WechatContact extends Model
         'stranger'=>3, // 3
     ];
 
-    // bot和contact关系 N:N
-    // @see https://laravel.com/docs/8.x/eloquent-relationships#many-to-many
-    public function bots(): BelongsToMany
-    {
-        // $bot = $contact->bots->where('userName', 'wxid_7nof1pauaqyd22')->first();
-        // $bot->pivot->remark
-        // $bot->pivot->seat_user_id
-        // $bot->pivot->config
-        return $this->belongsToMany(WechatBot::class, 'wechat_bot_contact')->withPivot(['type','remark','seat_user_id','config']); //, 'wechat_contact_id', 'wechat_bot_id'
-    }
+    const SEX = [
+        '未知',
+        '男',
+        '女'
+    ];
+    
+    // // bot和contact关系 N:N
+    // // @see https://laravel.com/docs/8.x/eloquent-relationships#many-to-many
+    // public function bots(): BelongsToMany
+    // {
+    //     // $bot = $contact->bots->where('userName', 'wxid_7nof1pauaqyd22')->first();
+    //     // $bot->pivot->remark
+    //     // $bot->pivot->seat_user_id
+    //     // $bot->pivot->config
+    //     return $this->belongsToMany(WechatBot::class, 'wechat_bot_contacts')
+    //         ->withPivot(['type','remark','seat_user_id']); //, 'wechat_contact_id', 'wechat_bot_id'
+    // }
 
     /**
      * @return bool

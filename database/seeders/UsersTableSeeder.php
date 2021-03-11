@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App;
 use App\Models\User;
 use App\Models\Team;
 
@@ -17,7 +16,7 @@ class UsersTableSeeder extends Seeder
     public function run()
     {
         // For dev
-        if (App::environment('local')) {
+        if (\App::environment('local')) {
             $userData = [
                 'name'     => 'admin',
                 'email'    => 'admin@admin.com',

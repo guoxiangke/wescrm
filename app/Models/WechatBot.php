@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +17,7 @@ use Mvdnbrk\EloquentExpirable\Expirable;
 
 class WechatBot extends Model
 {
-    use Expirable; // 账户有效期 https://github.com/mvdnbrk/laravel-model-expires/
+    use Expirable;
     use Metable;
     use HasFactory;
     protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at']; // If you choose to unguard your model, you should take special care to always hand-craft the arrays passed to Eloquent's fill, create, and update methods: https://laravel.com/docs/8.x/eloquent#mass-assignment-json-columns
@@ -26,7 +25,6 @@ class WechatBot extends Model
 	use SoftDeletes;
     use LogsActivity;
     protected static $logOnlyDirty = true;
-    // protected static $logAttributes = ['email', 'email_verified_at'];
     protected static $logAttributesToIgnore = ['bigHead', 'config'];
     // only the `deleted` event will get logged automatically
     protected static $recordEvents = ['updated']; //created, updated, deleted
@@ -36,9 +34,11 @@ class WechatBot extends Model
         'config' => 'collection' // casting the JSON database column
     ];
 
+    protected $dates = ['created_at', 'updated_at', 'expires_at', 'login_at'];
     
     
     // bot和contact关系 N:N
+    protected $touches = ['contacts']; //https://github.com/laravel/framework/issues/31597
     public function contacts(): BelongsToMany // @see https://laravel.com/docs/8.x/eloquent-relationships#many-to-many
     {
         // $contact = $bot->contacts->where('userName','gh_3dfda90e39d6')->first()
@@ -46,7 +46,16 @@ class WechatBot extends Model
         // $contact->pivot->remark
         // $contact->pivot->seat_user_id
         // $contact->pivot->config
-        return $this->belongsToMany(WechatContact::class, 'wechat_bot_contact')->withPivot(['type','remark','seat_user_id','config']); //, 'wechat_bot_id', 'wechat_contact_id'
+        return $this->belongsToMany(WechatContact::class, 'wechat_bot_contacts')
+            ->withTimestamps()
+            ->withPivot(['type','remark','seat_user_id']); //, 'wechat_bot_id', 'wechat_contact_id'
+    }
+
+    // WechatBot::find(1)->autoReplies()->create(['keyword'=>'hi','wechat_content_id'=>1]);
+    public function autoReplies()
+    {
+        return $this->hasMany(WechatAutoReply::class)
+            ->orderBy('updated_at','desc'); // 最近编辑的，作为第一个匹配来响应
     }
 
     // 1:1
@@ -77,27 +86,22 @@ class WechatBot extends Model
         return $response;
     }
 
+    // 可以主动发送的消息类型
+    // const MSG_TYPES = [文本,图片,视频,名片,链接,小程序]
     //主动发送 文本消息，加入 座席seatUser 和 team
-    // $content 可以是 string 、url 、Array
     
-    //// 主动发送 文本
-        // $text = "5/6.座席客服 主动发送 文本 消息给好友，主动记录 message + ID"
-        // $response = $wechatBot->send($Wxid, $text);
-    //// 主动发送 图片
-        // $image = "https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg";
-        // $response = $wechatBot->send($Wxid, $image);
-    //// 主动发送 视频
-        // $video = ['path'=>"https://abc.yilindeli.com/teach/LevelTestMaterial/0zhumuTestFiles/test.mp4", 'thumbPath'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"];
-        // $response = $wechatBot->send($Wxid, $video);
-    //// 主动发送 名片
-        // $card = ['nameCardId'=>"filehelper", 'nickName'=>"文件传输助手"];
-        // $response = $wechatBot->send($Wxid, $card);
-    //// 主动发送 链接
-        // $url = ['title'=>'测试链接到百度', 'url'=>'https://weibo.com', 'description'=>'其实我放的是微博的链接', 'thumbUrl'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"];
-        // $response = $wechatBot->send($Wxid, $url);
-
-    public function send($ToWxid, $content, $at=""):Response
+    // $tos = ['802'=>'filehelper',...] //Array or Collection id可以不要 
+    // data里的字段名字给API有关，不可以随意更改！
+    // $text = ['type'=>'text','data'=>['content'=>"send text"]];
+    // $text = ['type'=>'image','data'=>['content'=>"https://your.com/test.jpg"]];
+    // $url = ['type'=>'url','data'=>['title'=>'linkTitle', 'url'=>'https://weibo.com', 'description'=>'this is a link', 'thumbUrl'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"]];
+    // $card = ['type'=>'card','data'=>['nameCardId'=>'wxid_xxx', 'nickName'=>'nothing']];
+    // $video = ['type'=>'video','data'=>['path'=>"https://your.com/test.mp4", 'thumbPath'=>"https://your.com/test.jpg"]];
+    public function send($tos, WechatContent $wchatContent)
     {
+        $typeId = $wchatContent->type;
+        $content = $wchatContent->content['data'];
+
         $seatUser = auth()->user();
         $teamId = $this->team_id;
       
@@ -105,63 +109,68 @@ class WechatBot extends Model
             if($seatUser->currentTeam->id != $teamId) return "您无权限发送！"; // 判断发送者 是否属于 该bot的Team
             $seatUserId = $seatUser->id;
         }else{
-            $seatUserId = $this->user_id; // 如果是 后台定时发送呢？ $seatUser == 默认bot拥有者的user_id
+            $seatUserId = $this->team->user_id; // 如果是 后台定时发送呢？ $seatUser == 默认bot拥有者的user_id
         }
-
+        
         $Wxid = $this->userName;
         $wechat = new Wechat($Wxid);
         
-        if(is_string($content)){
-            if(Str::startsWith($content, 'http')){ //图片链接
-                if(Str::endsWith($content, ['.jpg','.png','.jpeg','.gif'])) {
-                    $msgType = WechatMessage::MSG_TYPES['image'];
-                    $response = $wechat->sendImage($ToWxid, $content, $at);
-                }
-                // if(Str::endsWith($content, ['.mp3','mp4'])) { }
-            }else{ // 普通文本
-                $msgType = WechatMessage::MSG_TYPES['text'];
-                $response = $wechat->sendText($ToWxid, $content, $at);
-            }
-        }elseif(is_array($content)){
-            // $video = ['nameCardId'=>'1', 'nickName'=>2];
-            if(Arr::has($content, ['path', 'thumbPath'])){
-                $msgType = WechatMessage::MSG_TYPES['video'];
-                $response = $wechat->sendVideo($ToWxid, $content['path'], $content['thumbPath']);
-            }
-            
-            // $card = ['nameCardId'=>'filehelper', 'nickName'=>"文件传输助手"];
-            else if(isset($content['nameCardId'])){
-                $msgType = WechatMessage::MSG_TYPES['card'];
-                $response = $wechat->sendCard($ToWxid, $content['nameCardId']);
-            }
-            
-            // $link = compact('title', 'url', 'description', 'thumbUrl');
-            else if(Arr::has($content, ['title', 'url', 'description', 'thumbUrl'])){
-                $msgType = WechatMessage::MSG_TYPES['url'];
+        $typeName = WechatContent::TYPES[$typeId];
+        $sendType = Str::camel("send_{$typeName}");//sendImage  sendText sendVideo sendCard sendUrl .strtoupper
+        
+        foreach ($tos as $wxid) {
+            if($typeName == 'template'){
+                // 可用变量替换
+                $template = $wchatContent->content['data']['content'];
                 
-                $response = $wechat->sendUrl($ToWxid, $content);
-            }
-            // TODO other types
-        }
+                $contact = \App\Models\WechatBotContact::with('contact','seat')
+                    ->whereHas('contact', fn($q)=>$q->where('userName', $wxid))
+                    ->firstOrFail();
+                // :remark 备注或昵称 
+                // :name 好友自己设置的昵称 
+                // :seat 客服座席名字 
+                // :no 第x号好友
+                $remark = $contact->remark;
+                $name = $contact->contact->nickName;
+                $seat = $contact->seat->name;
+                $no = $contact->id;
 
-        if($response->ok()){
-            // 主动发送消息，需要主动记录 客服座席 user_id to message
-            $wechatBot = WechatBot::firstWhere('team_id', $teamId);
-            $contact = WechatContact::firstWhere('userName', $ToWxid);
-            $data = [
-                // 'msgId'=>NULL, // ???
-                'seat_user_id' => $seatUserId, // 座席 用户ID
-                // 'from_contact_id' => null, //主动发送时，应该bot的WechatContact->id, 故为NULL
-                'wechat_bot_id' => $wechatBot->id,  //WechatBot
-                'conversation' => $contact->id, //WechatContact
-                'content' => is_array($content)?json_encode($content):$content,
-                'messageType' => 2, // message.messageType int 0:好友请求 1:群邀请 2：消息 3:离线 4:其他消息
-                'type' => 3, // 3:bot 主动发消息
-                'msgType' => $msgType,
-            ];
-            $wechatMessage = WechatMessage::create($data);
-            Log::info(__METHOD__, ['WechatBot::send 主动发送成功', $wechatMessage->id]);
+                $replaced = preg_replace_array('/:remark/', [$remark], $template);
+                $replaced = preg_replace_array('/:name/', [$name], $replaced);
+                $replaced = preg_replace_array('/:seat/', [$seat], $replaced);
+                $replaced = preg_replace_array('/:no/', [$no], $replaced);
+                
+                
+                //  Indirect modification of overloaded property
+                // $data = $wchatContent->content;
+                // $data['data']['content'] = $replaced;
+                // $wchatContent->content = $data;
+                // $content = $replaced;
+                $content = ['content'=>$replaced];//$wchatContent->content['data'];
+                $sendType = 'sendText';
+            }
+            $contentWithTo = array_merge(['ToWxid'=> $wxid], $content);
+            
+            $response = $wechat->send($sendType, $contentWithTo);
+            if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
+                // 主动发送消息，需要主动记录 客服座席 user_id to message
+                $wechatBot = WechatBot::firstWhere('team_id', $teamId);
+                $contact = WechatContact::firstWhere('userName', $wxid);
+                $data = [
+                    // 'msgId'=>NULL,
+                    'seat_user_id' => $seatUserId, // 座席 用户ID
+                    // 'from_contact_id' => null, //主动发送时，应该bot的WechatContact->id, 故为NULL
+                    'wechat_bot_id' => $wechatBot->id,  //WechatBot
+                    'conversation' => $contact->id, //WechatContact
+                    'content' => $content,
+                    'type' => 3, // 3:bot 主动发消息
+                    'msgType' => WechatMessage::MSG_TYPES[$typeName],
+                ];
+                $wechatMessage = WechatMessage::create($data);
+                Log::info(__METHOD__, ['WechatBot::send 主动发送成功', $wechatMessage->id]);
+            }else{
+                Log::error(__METHOD__, [__LINE__, $response->json(), $sendType, $contentWithTo]);
+            }
         }
-        return $response;
     }
 }

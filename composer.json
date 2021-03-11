@@ -10,6 +10,8 @@
     "require": {
         "php": "^7.3|^8.0",
         "appstract/laravel-options": "^5.2",
+        "dragonmantank/cron-expression": "^3.1",
+        "fakerphp/faker": "^1.13",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
@@ -18,18 +20,20 @@
         "laravel/jetstream": "^2.1",
         "laravel/sanctum": "^2.6",
         "laravel/tinker": "^2.5",
-        "livewire/livewire": "^2.0",
+        "livewire/livewire": "2.3.18",
         "mvdnbrk/laravel-model-expires": "^1.8",
         "plank/laravel-metable": "^5.0",
         "predis/predis": "^1.1",
         "spatie/laravel-activitylog": "^3.16",
-        "spatie/laravel-permission": "^4.0"
+        "spatie/laravel-medialibrary": "^8.0.0",
+        "spatie/laravel-permission": "^4.0",
+        "spatie/laravel-tags": "^3.0",
+        "spatie/laravel-webhook-server": "^1.11"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.5",
         "beyondcode/laravel-query-detector": "^1.4",
         "facade/ignition": "^2.5",
-        "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.4.2",
         "nunomaduro/collision": "^5.0",
@@ -63,7 +67,8 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@php artisan vendor:publish --force --tag=livewire:assets --ansi"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

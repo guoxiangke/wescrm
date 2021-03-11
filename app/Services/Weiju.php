@@ -6,6 +6,10 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
+// Variables
+    // Cache::get('weiju_token',''),  => option
+// TODO
+    // option(['weiju.expired_at' => $ExpireAt]);
 class Weiju {
     private Array $data;
     public String $baseUri;
@@ -28,7 +32,7 @@ class Weiju {
     public function getQR($Wxid = ''):Response {
         $endPoint = "/foreign/message/scanNew";
         $headers = [
-            'token' => option('weiju.token'),//Cache::get('weiju_token',''),
+            'token' => option('weiju.token'),
             "content-type" => "application/json"
         ];
 

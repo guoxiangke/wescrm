@@ -16,26 +16,24 @@ class CreateWechatMessagesTable extends Migration
         Schema::create('wechat_messages', function (Blueprint $table) {
             $table->id();
             
-            $table->unsignedSmallInteger('msgType')->comment('int 1:文本消息 10000:表示添加别人成功;47:动图;48:地图位置; // 49:红包、文件、链接、小程序; // 49 点击▶️收听');//message.data.msgType   
-
             // $table->unsignedTinyInteger('old:type')->nullable()->comment('message.data.type   int 0:文本消息（49也是0）;1:图片消息；2：视频消息');
             $table->unsignedTinyInteger('type')->nullable()->comment('1:好友 发消息给 bot 2:群成员 发消息给 群 3:bot 主动发消息');
             // $table->boolean('self')->default(false)->comment('boolean:true为bot主动发送消息'); // message.data.self   boolean:false   主动发送消息？
             // $table->boolean('category')->default(false)->comment('int 0:私聊消息;1:群组消息');
 
             // $table->string('toUser', 32)->comment('String  接收微信号 == bot'); //message.Wxid = message.data.toUser   
-            $table->foreignId('wechat_bot_id')->nullable()->comment('接收微信号botId');
+            $table->foreignId('wechat_bot_id')->index()->nullable()->comment('接收微信号botId');
 
             // $table->string('sendUser', 32)->comment('String 消息发送者');//message.sendUser 发送者
-            $table->foreignId('conversation')->nullable()->comment('会话对象');
+            $table->foreignId('conversation')->index()->nullable()->comment('会话对象');
 
             // 从手机微信主动发信息时： from_contact_id 和 seat_user_id 都为NULL
             // 网页版主动发送信息时，seat_user_id为座席用户id， msgId 为null
 
             // $table->string('fromUser', 32)->nullable()->index()->comment('String 消息发送到的群/发送者');//message.fromUser “xx@chatroom”
-            $table->foreignId('from_contact_id')->nullable()->comment('消息接收者，= toUser, 主动时发送除外，应该补充为botId');
-            $table->foreignId('seat_user_id')->nullable()->comment('主动回复时的客服ID');
-            $table->unsignedbigInteger('msgId')->nullable()->comment('message.data.msgId long    消息ID: 1116020096');
+            $table->foreignId('from_contact_id')->index()->nullable()->comment('消息接收者，= toUser, 主动时发送除外，应该补充为botId');
+            $table->foreignId('seat_user_id')->index()->nullable()->comment('主动回复时的客服ID');
+            $table->unsignedbigInteger('msgId')->unique()->nullable()->comment('message.data.msgId long    消息ID: 1116020096');
             $table->text('content')->nullable()->comment('String(文本消息) 或 XML（图片、视频消息）消息体'); // message.data.content    String  
             // $table->text('img')->default('')->comment(''); // message.data.img byte[]  缩略图
             
@@ -46,7 +44,8 @@ class CreateWechatMessagesTable extends Migration
             // $table->text('msgSource')->default('')->comment('');// ！message.data.msgSource    String  消息源
             // $table->text('pushContent')->default('')->comment('String:谁@了bot你');// message.data.pushContent String  
             // $table->unsignedInteger('timestamp')->comment('消息原始时间戳long：1613208757');// message.data.timestamp
-            $table->unsignedsmallInteger('messageType')->comment('message.messageType int 0:好友请求 1:群邀请 2：消息 3:离线 4:其他消息');
+            
+            $table->unsignedSmallInteger('msgType')->comment('int 1:文本消息 10000:表示添加别人成功;47:动图;48:地图位置; // 49:红包、文件、链接、小程序; // 49 点击▶️收听');//message.data.msgType   
 
             $table->softDeletes();
             $table->timestamps();

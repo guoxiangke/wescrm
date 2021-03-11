@@ -53,6 +53,8 @@ class Wechat {
     // 返回内容不含 labelId，非好友不包含v1
     public function friendSearch($ToWxid):Response { return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));}
     // 此接口不支持直接获取wxid开头的微信号信息！！！// wxid开头的微信号，调用⬆️搜索用户接口⬆️获取信息
+    
+    // 适用于 非好友，获取V2
     public function friendFind($ToWxid):Response {
         // if(Str::startsWith($ToWxid, 'wxid_')) return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));
         return $this->http->post("/foreign/friends/searchUser", array_merge($this->data, get_defined_vars()));
@@ -93,8 +95,8 @@ class Wechat {
 
     // region begin 消息接收
 
-    public function setCallBackUrl($callbackSend=false, $heartBeat='', $linkMsgSend=''):Response {
-        if(!$callbackSend) $callbackSend = config('services.weiju.callbackUri');
+    public function setCallBackUrl($callbackSend=null, $heartBeat='', $linkMsgSend=''):Response {
+        if(!$callbackSend) $callbackSend = route('webhook.weiju');
         $this->unsetCallBackUrl();
         $data = array_merge($this->data, get_defined_vars());
         return $this->http->post("/foreign/user/setUrl", $data);
@@ -142,56 +144,16 @@ class Wechat {
     // region end 消息接收 
 
 
-    // region begin 消息发送 
-    // TODO 去队列里发送！?
-    public function send($sendEndpoint, Array $data):Response 
+    // region begin 消息发送
+    // $wechat->send("sendText", ['ToWxid'=>'filehelper', 'content'=>$this->msg]);
+    public function send($sendEndpoint, Array $content):Response 
     {
         sleep(1);
+        $data = array_merge($this->data, $content);
         $response = $this->http->post("/foreign/message/$sendEndpoint", $data);
         return $response;
     }
-
-    //发送文本消息
-    public function sendText($ToWxid, $content, $at=""):Response 
-    {
-        $data = array_merge($this->data, get_defined_vars());
-        $sendEndpoint = 'sendText';
-        return $this->send($sendEndpoint, $data);
-    }
-
-    //发送图片消息
-    public function sendImage($ToWxid, $content):Response 
-    {
-        $data = array_merge($this->data, get_defined_vars());
-        $sendEndpoint = 'sendImage';
-        return $this->send($sendEndpoint, $data);
-    }
-
-    //发送链接消息
-    public function sendUrl($ToWxid, Array $link):Response 
-    {
-        // $link = compact('title', 'url', 'description', 'thumbUrl');
-        $data =  array_merge($this->data, compact('ToWxid'), $link);
-        $sendEndpoint = 'sendUrl';
-        return $this->send($sendEndpoint, $data);
-    }
-
-    //发送名片消息
-    public function sendCard($ToWxid, $nameCardId, $nickName=''):Response 
-    {
-        $data = array_merge($this->data, get_defined_vars());
-        $sendEndpoint = 'sendCard';
-        return $this->send($sendEndpoint, $data);
-    }
-
-
-    public function sendVideo($ToWxid,  $path, $thumbPath):Response 
-    {
-        $data = array_merge($this->data, get_defined_vars());
-        $sendEndpoint = 'sendVideo';
-        return $this->send($sendEndpoint, $data);
-    }
-
+    
     // TODO 测试发送小程序
     public function sendApp($ToWxid, Array $app):Response 
     {

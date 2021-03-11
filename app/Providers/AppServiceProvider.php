@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\WechatMessage;
+use App\Observers\WechatMessageObserver;
+use App\Services\Tuling;
 use Illuminate\Support\ServiceProvider;
 use App\Services\Weiju;
 class AppServiceProvider extends ServiceProvider
@@ -17,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Weiju::class, function() {
             return new Weiju();
         });
+
+        $this->app->singleton(Tuling::class, function() {
+            return new Tuling();
+        });
     }
 
     /**
@@ -26,6 +33,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        WechatMessage::observe(WechatMessageObserver::class);
     }
 }

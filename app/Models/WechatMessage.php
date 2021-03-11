@@ -18,7 +18,11 @@ class WechatMessage extends Model
     protected $guarded = ['id', 'created_at', 'deleted_at'];
 
 	use SoftDeletes;
-
+    
+    protected $casts = [
+        'content' => 'array',
+    ];
+    
     // WechatMessage 消息逻辑类型
         // 1. 好友 发消息给 微信bot
         // 2. 群成员 发消息给 微信bot 的群
@@ -37,14 +41,8 @@ class WechatMessage extends Model
         // content：'String(文本消息) 或 XML（图片、视频消息）消息体');
         // seat_user_id：'主动回复时的客服ID');
 
-    // int	0:好友请求 1:群邀请 2：消息 3:离线 4:其他消息
-    const MESSAGE_TYPES = [
-        '好友请求', //0
-        '群邀请', //1
-        '消息',
-        '离线',
-        '其他消息'
-    ];
+    // MESSAGE_TYPES int	0:好友请求 1:群邀请 2：消息 3:离线 4:其他消息
+    
     // Attachment
     const ATTACHMENY_MSG_TYPES = [
         3, // Img
@@ -53,8 +51,14 @@ class WechatMessage extends Model
         49, // 文件 49 点击▶️收听
     ];
 
+    const APP_MSG_TYPES = [
+        3, //收到 音频：点击▶️收听
+        33, //收到 小程序
+
+    ];
     const MSG_TYPES = [
         'text'=>1, //文本
+        'template'=>1, //发送带模版的文本 @see WechatBot::send(167)
         'image'=>3, // Img
         'url'=>5,// 5表示链接，
         'roomChatRecords'=>19,// 19表示群聊的聊天记录，
@@ -64,7 +68,13 @@ class WechatMessage extends Model
         'emoji'=>47, // emoji
         'geo'=>48, // 地理位置
         'file'=>49, // 文件 // 49 点击▶️收听
-        'inviteToRoom'=>10002, // 邀请好友入群
+        'addByIm' =>65, // 
+            // 我是xxx的xxx，添加我的企业微信与我联系吧。
+        'agreeAddByIm' => 10000, //25984xxx7841966@openim
+            // 你已添加了xxx，现在可以开始聊天了。
+            // 对方为企业微信用户，<_wc_custom_link_ color="#2782D7" href="https://weixin.qq.com/cgi-bin/readtemplate?t=work_wechat/about">了解更多</_wc_custom_link_>。
+
+        'inviteToRoom'=>10002, // 邀请好友入群  // "$username$\"邀请你加入了群聊，群聊参与人还有：$others$"
         'card' => 0,//?
     ];
 
@@ -82,4 +92,14 @@ class WechatMessage extends Model
         '个人消息', //0
         '群组消息', //1
     ];
+
+    // 1:1
+    public function contact(){
+        return $this->hasOne(WechatContact::class, 'id', 'conversation');
+    }
+
+
+    public function wechatBot(){
+        return $this->hasOne(WechatBot::class, 'id', 'wechat_bot_id');
+    }
 }
