@@ -21,7 +21,8 @@ class WechatAutoReply extends Component
     public function mount()
     {
         $currentTeamId = auth()->user()->currentTeam->id;
-        $this->wechatBotId = WechatBot::where('team_id', $currentTeamId)->pluck('id')->first();
+        $wechatBot = WechatBot::where('team_id', $currentTeamId)->firstOrFail();
+        $this->wechatBotId = $wechatBot->id;
         $this->contents = WechatContent::where('wechat_bot_id', $this->wechatBotId)->pluck('name','id');
         $this->editing = $this->makeBlankModel();
 

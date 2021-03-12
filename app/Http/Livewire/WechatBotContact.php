@@ -67,7 +67,8 @@ class WechatBotContact extends Component
     {
         
         $currentTeamId = auth()->user()->currentTeam->id;
-        $this->wechatBotId = WechatBot::where('team_id', $currentTeamId)->pluck('id')->first();
+        $wechatBot = WechatBot::where('team_id', $currentTeamId)->firstOrFail();
+        $this->wechatBotId = $wechatBot->id;
         $this->editing = $this->makeBlankModel();
         $this->tagWith =  'wechat-contact-team-'.$currentTeamId;
         // $tagA = Tag::findOrCreate('tagA', $this->tagWith);

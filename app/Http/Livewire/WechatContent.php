@@ -31,7 +31,7 @@ class WechatContent extends Component
     {
         
         $currentTeamId = auth()->user()->currentTeam->id;
-        $this->wechatBot = WechatBot::where('team_id', $currentTeamId)->first();
+        $this->wechatBot = WechatBot::where('team_id', $currentTeamId)->firstOrFail();
         
         $this->contents = Model::where('wechat_bot_id', $this->wechatBot->id)->pluck('name','id');
         // dd(WechatBotContact::with('contact')->where(['wechat_bot_id' => $wechatBot->id, 'type'=>WechatContact::TYPES['friend']])->first()->toArray());
