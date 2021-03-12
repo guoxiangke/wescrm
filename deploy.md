@@ -90,6 +90,62 @@
             }
         ```
     - 高级开发者选项 直接转发weiju的raw content给高级开发者
+- 开放API 
+    - 创建Token http://yourIp:8080/user/api-tokens
+    - http://yourIp:8080/api/wechat/send
+        - 'Authorization: Bearer yourApiToken',
+        - 'Content-Type: application/json'
+        - 发送内容：
+        ```
+        {
+            "type": "text",
+            "to": "bluesky_still",
+            "data": {
+                "content": "API2主动发送 文本/链接/名片/图片/视频 消息到好友/群"
+            }
+        }
+
+        {
+            "type": "image",
+            "to": "bluesky_still",
+            "data": {
+                "content": "https://www.upyun.com/static/logos/dangdang.png"
+            }
+        }
+
+
+        {
+            "type": "video",
+            "to": "bluesky_still",
+            "data": {
+                "path": "https://yourdomain.com/test.mp4",
+                "thumbPath": "https://www.upyun.com/static/logos/dangdang.png"
+            }
+        }
+
+
+        {
+            "type": "url",
+            "to": "bluesky_still",
+            "data": {
+                "url": "https://weibo.com",
+                "title": "测试链接到百度",
+                "thumbUrl": "https://www.upyun.com/static/logos/dangdang.png",
+                "description": "其实我放的是微博的链接"
+            }
+        }
+
+        {
+            "type": "card",
+            "to": "bluesky_still",
+            "data": {
+                "nickName": "nothing",
+                "nameCardId": "bluesky_still"
+            }
+        }
+
+        ```
+
 ## TODO
 
 - 网页版微信，多座席回复
