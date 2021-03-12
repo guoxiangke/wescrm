@@ -20,14 +20,9 @@ RUN composer install \
 
 #
 # Frontend
-#
-FROM node:latest as frontend
-
-RUN mkdir -p /app/public
-
-COPY package.json webpack.mix.js package-lock.json /app/
-COPY resources/ /app/resources/
-
+## node v14.16.0
+FROM node:lts as frontend
+COPY . /app
 WORKDIR /app
 
 # RUN npm config set registry http://registry.npm.taobao.org
@@ -60,7 +55,6 @@ RUN set -ex; \
 COPY . /var/www/html
 COPY --from=vendor /app/vendor/ /var/www/html/vendor/
 COPY --from=frontend /app/public/ /var/www/html/public/
-COPY --from=frontend /app/mix-manifest.json /var/www/html/mix-manifest.json
 
 COPY docker/start.sh /usr/local/bin/start
 WORKDIR /var/www/html

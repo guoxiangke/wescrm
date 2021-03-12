@@ -9,13 +9,13 @@
         - WEIJU_ENDPOINT=""
 - docker pull guoxiangke/wescrm
 - docker-compose up -d
-
 - docker-compose exec app php artisan key:generate
-- docker-compose exec app php artisan migrate:fresh --seed
+- docker-compose exec app php artisan migrate:fresh --seed  # 等待 docker-compose up -d 启动完成后执行，约1分钟
 
 - 有问题重复执行上面2步后，执行下面命令
     - docker-compose exec app php artisan cc
-    
+    - 默认暴露8080端口，请使用反代配置https证书访问
+
 - http://yourIp:8080/login
     - Email：admin@admin.com 
     - Password：password
@@ -32,6 +32,7 @@
     - 座席用户默认3天有效期
 - 第一次扫码绑定登录
     - 绑定后，不可以切换，除非新建bot管理者用户
+    - 绑定后，自动弹窗确认登录
 - 通讯录管理
     - 给好友加标签
     - 给好友改备注

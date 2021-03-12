@@ -7,6 +7,7 @@ use App\Observers\WechatMessageObserver;
 use App\Services\Tuling;
 use Illuminate\Support\ServiceProvider;
 use App\Services\Weiju;
+use Illuminate\Support\Facades\URL;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -16,7 +17,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        if(config("app.env") === 'production'){
+            URL::forceScheme('https');
+        }
+
         $this->app->singleton(Weiju::class, function() {
             return new Weiju();
         });
