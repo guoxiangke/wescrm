@@ -50,9 +50,9 @@ class JetstreamServiceProvider extends ServiceProvider
     protected function configurePermissions()
     {
         Jetstream::defaultApiTokenPermissions(['read']);
-        Jetstream::permissions([
-            'wechat:send'
-        ]);
+        // Jetstream::permissions([
+        //     'wechat:send'
+        // ]);
         // Jetstream::role('admin', __('Administrator'), [
         //     'create',
         //     'read',
