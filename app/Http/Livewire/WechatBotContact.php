@@ -85,8 +85,11 @@ class WechatBotContact extends Component
 
     public function attachTag(Model $wechatBotContact, string $tagName)
     {
-        Tag::findOrCreate($tagName, $this->tagWith);
-        $wechatBotContact->attachTag($tagName, $this->tagWith);
+        $tagName = trim($tagName);
+        if($tagName) {
+            Tag::findOrCreate($tagName, $this->tagWith);
+            $wechatBotContact->attachTag($tagName, $this->tagWith);
+        }
     }
 
     public function updatedFilters()
