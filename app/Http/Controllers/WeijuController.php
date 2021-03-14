@@ -29,14 +29,7 @@ class WeijuController extends Controller
      */
     public function listen(Request $request)
     {
-        $inputs = $request->toArray();
-
-        // TODO check $table->text('msgSource')->nullable();// ！message.data.msgSource	String	消息源
-        // TODO check $table->text('pushContent')->nullable();// message.data.pushContent	String	谁艾特了你
-        if(isset($inputs['message']['data']['msgSource']) || isset($inputs['message']['data']['pushContent']))
-            Log::error(__METHOD__, ['TODO Callback原始消息中含msgSource、pushContent', $inputs]);
-            
-        $wechatMessage = $inputs['message']['data'];
+        $wechatMessage = $request['message']['data'];
 
         // 企业微信账号：  25984983457841966@openim
         // 企业微信群
@@ -45,11 +38,10 @@ class WeijuController extends Controller
         // "content":"bluesky_still:\ngooood"
         // "content":"bluesky_still:\n<?xml
         if(Str::endsWith($wechatMessage['fromUser'], '@im.chatroom') || Str::endsWith($wechatMessage['fromUser'], '@openim')){
-            Log::debug(__METHOD__, ['收到企业微信群消息','暂不处理']);
-            return;
+            return Log::debug(__METHOD__, ['企业微信群消息', '暂不处理']);
         }
         
-        // 消息类型 type
+        // 消息类型 type 不存储
             // 1. 好友 发消息给 bot
             // 2. 群成员 发消息给 群
             // 0 == self
@@ -58,6 +50,8 @@ class WeijuController extends Controller
             // 3 bot 主动发消息 给公众号
             // 4 被动收到公众号消息
         $isGh = (Str::startsWith($wechatMessage['toUser'], 'gh_') || Str::startsWith($wechatMessage['sendUser'], 'gh_'))?:false; // "toUser":"gh_c213xxx7da3"   // isToGh isFromGh
+        
+        // 处理消息，获取发送者和接收者（bot的Wxid）
         if($wechatMessage['self'] == false){ // 1/2：别人发消息 
             $wechatMessage['wechat_bot_id'] = $wechatMessage['toUser'];
             if($wechatMessage['sendUser'] == $wechatMessage['fromUser']){
@@ -82,8 +76,7 @@ class WeijuController extends Controller
         }
 
         // 把 string 转换成 id 表关系 foreignId
-        $Wxid = $wechatMessage['wechat_bot_id'];
-        $wechatBot = WechatBot::with('meta')->firstWhere('userName', $Wxid);
+        $wechatBot = WechatBot::with('meta')->firstWhere('userName', $wechatMessage['wechat_bot_id']);
         // 默认不接收公众号的消息
             // @see $wechatBot->setMeta('wechatListenGh', 0); 
             // (boolean) ($allMetaCollection['wechatListenGh']??false)
@@ -94,58 +87,90 @@ class WeijuController extends Controller
             // $wechatBot->setMeta('wechatListenRoom', 0); 
             // $wechatBot->setMeta('wechatListenRoomAll', 1);  // 接收所有
             // $wechatBot->setMeta('wechatListenRooms', ['5829025039@chatroom']); // 只接收少数几个群的群消息
-        $isRoom = $wechatMessage['category']; // int 0:私聊消息;1:群组消息
-        if($isRoom){
+        $isFromRoom = $wechatMessage['category']; // int 0:私聊消息;1:群组消息
+        if($isFromRoom){
             if(!$wechatBot->getMeta('wechatListenRoom')) { // 默认不接收群消息
+                Log::debug(__METHOD__, ['没有开启接收群消息']);
                 return;
             }else{  // 只接收少数几个群的群消息
-                if(!$wechatBot->getMeta('wechatListenRoomAll')) {
-                    $roomArray = (array) $wechatBot->getMeta('wechatListenRooms');
-                    if(!in_array($wechatMessage['conversation'], $roomArray)) return;
+                if(!($wechatBot->getMeta('wechatListenRoomAll') 
+                    || in_array($wechatMessage['conversation'], (array) $wechatBot->getMeta('wechatListenRooms')))) {
+                    Log::debug(__METHOD__, ['没有开启接收指定/全部群消息']);
+                    return;
                 } 
             }
+            
+            // 群里的某个非好友 成员 发言（处理之前初始化并没有保存为contact的情况）
+            $contact = WechatContact::firstWhere('userName', $wechatMessage['from_contact_id']);
+            if(!$contact) {
+                $wxid = $wechatMessage['from_contact_id'];
+                $contact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['stranger']);// type=3
+            }
+            $wechatMessage['from_contact_id'] = $contact->id;
         }
 
         // 处理时间戳 // 2021-02-18 = 1613540658
         // 更新时间，设置为 返回消息中的时间, 以后使用 orderBy('updated_at')顺序
         $wechatMessage['updated_at'] = $wechatMessage['timestamp'];
-        // $table->boolean('category')->default(false)->comment('int 0:私聊消息;1:群组消息');
 
         // 处理 <?xml  <msg
-        $xmlType = 0;
             // 0:简单文本消息 
             // 3:音频：点击▶️收听
-        $appmsgType = "init";
-        if(Str::startsWith($wechatMessage['content'], ['<?xml ','<msg'])) {
+        if(Str::startsWith($wechatMessage['content'], '<?xml ')) {
+            $appmsgType = "init";
             $msg = xStringToArray($wechatMessage['content']);
-            if(Arr::has($msg,'appmsg.type')){ // '<?xml '
-                $appmsgType = $msg['appmsg']['type']; //xmlType
+            if(Arr::has($msg, 'appmsg.type')){
+                $appmsgType = $msg['appmsg']['type'];
                 switch ($appmsgType) {
                     case '3':
-                        Log::debug(__METHOD__, ['收到 音频：点击▶️收听', $msg['appmsg']['title'], $msg['appmsg']['url']]);
+                        Log::debug(__METHOD__, ['XML消息', '音频：点击▶️收听', $msg['appmsg']['title'], $msg['appmsg']['url']]);
                         # TODO code...// appmsg.type = 3;
                         break;
                     case '33':
-                        Log::debug(__METHOD__, ['收到 小程序',$msg['appmsg']['title'],$msg['appmsg']['sourcedisplayname']]);
+                        Log::debug(__METHOD__, ['XML消息', '小程序', $msg['appmsg']['title'],$msg['appmsg']['sourcedisplayname']]);
                         # TODO code...// appmsg.type = 33;
                         break;
                     
                     default:
-                        Log::error(__METHOD__, ["收到 未处理 $appmsgType 消息"]);
+                        Log::error(__METHOD__, ['XML消息', '未处理', $appmsgType]);
                         break;
                 }
-            }else if(Arr::has($msg, 'img')){ //以<msg> <img 开头 
-                $appmsgType = 'image';
-                $md5 = $msg['img']['@attributes']['md5'];
-                $size = $msg['img']['@attributes']['length'];
-                // TODO 如果已经下载了，不再下载，引用之前的链接文件！
-                Log::debug(__METHOD__, ['接收到图片', $md5, $size]);
             }else{
-                // $inputs['message']
-                Log::debug(__METHOD__, ["待处理复杂消息", Arr::except($wechatMessage, ['content', 'img'])]);
+                Log::debug(__METHOD__, ['XML消息', "待处理", $request['message']]);
             }
+        }elseif(Str::startsWith($wechatMessage['content'], '<msg')){
+            $msg = xStringToArray($wechatMessage['content']);
+            switch ($wechatMessage['msgType']) {
+                case '37':
+                    // $msg['@attributes'] 字段
+                        // bigheadimgurl 
+                        // smallheadimgurl
+                        // encryptusername v3_xxx@stranger
+                        // ticket v4_xxx@stranger
+                    $v1 = $msg['@attributes']['encryptusername'];
+                    $v2 = $msg['@attributes']['ticket'];
+                    $wechatBot->friendAgree($v1, $v2, $msg['@attributes']['fromusername']);
+
+                    Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
+                    break;
+                default:
+                    Log::debug(__METHOD__, ['<msg消息', "待处理", $request['message']]);
+                    break;
+            }
+
+            // else if(Arr::has($msg, 'img')){ //以<msg> <img 开头 
+            //     $appmsgType = 'image';
+            //     $md5 = $msg['img']['@attributes']['md5'];
+            //     $size = $msg['img']['@attributes']['length'];
+            //     // TODO 如果已经下载了，不再下载，引用之前的链接文件！
+            //     Log::debug(__METHOD__, ['接收到图片', $md5, $size]);
+            // }else{
+            //     Log::debug(__METHOD__, ["待处理复杂XML消息", $request['message']]);
+            // }
         }else{ // 简单消息
-            Log::debug(__METHOD__, ['待处理简单消息', $wechatMessage]);
+            Log::debug(__METHOD__, ['简单消息', 'or待处理', $request['message']]);
+            // "msgType":10000, "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
+            // "msgType":10000, "content":"天空蔚蓝开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证请求，对方验证通过后，才能聊天。<a href=\"weixin://findfriend/verifycontact\">发送朋友验证</a>
         }
 
         // 收到公众号消息，没有 from_contact_id
@@ -183,31 +208,24 @@ class WeijuController extends Controller
         
 
         // 保存新群： 突然被拉到一个新群里！
+            // 'public'=>0, // 0
+            // 'friend'=>1, // 1
+            // 'group'=>2, // 2
+            // 'stranger'=>3, // 3
         if($conversation){
             $wechatMessage['conversation'] = $conversation->id;
         }else{
             // 保存群
-            $contact = $this->save_contact($wechatMessage['conversation'], $Wxid, $wechatBot);
-            $wechatMessage['conversation'] = $contact->id;
 
             // if(Str::endsWith($wechatMessage['fromUser'], '@im.chatroom')){
             //     // 企业微信群
-            //     $who = $wechatMessage['sendUser'];
+            //     $wxid = $wechatMessage['sendUser'];
             // }
-        }
 
-       
-        // 群里的某个非好友 成员 发言（处理之前初始化并没有保存为contact的情况）
-        if(isset($wechatMessage['from_contact_id'])){
-            // 处理群成员（非好友）的信息，先保存为contact
-            $contact = WechatContact::firstWhere('userName', $wechatMessage['from_contact_id']);
-            if(!$contact) {
-                $who = $wechatMessage['from_contact_id'];
-                $contact = $this->save_contact($who, $Wxid, $wechatBot);
-            }
-            $wechatMessage['from_contact_id'] = $contact->id;
+            $wxid = $wechatMessage['conversation'];
+            $contact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['group']);//2
+            $wechatMessage['conversation'] = $contact->id;
         }
-
         // 为什么1条信息，数据库中有2个记录，同样的msgId？
             // server重发 发送2次post
             // 使用Cache 缓存要处理的条目
@@ -219,9 +237,7 @@ class WeijuController extends Controller
         if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES) && !in_array($appmsgType,[3,33])){
             $needSave = true;
             // 下载 文件更新 content为链接
-            $Wxid = $wechatMessage['toUser']; //$inputs['message']['data']['toUser'];
-            $wechat = new Wechat($Wxid);
-            $response = $wechat->saveAttachmentResponse($wechatMessage['msgType'], $wechatMessage['msgId'], $wechatMessage['fromUser'], $wechatMessage['content']);
+            $response = $wechatBot->wechat->saveAttachmentResponse($wechatMessage['msgType'], $wechatMessage['msgId'], $wechatMessage['fromUser'], $wechatMessage['content']);
             
             if($response->ok() && $response->json('code') === 1000){
                 $data = str_replace('http:', 'https:', $response->json('data'));
@@ -233,8 +249,10 @@ class WeijuController extends Controller
                 Log::error(__METHOD__, ['文件消息下载失败，请使用saveAttachmentBy(WechatMessage)重试！', $wechatMessage, $response]);
             }
         }
-        // 纯文本消息 处理为json
-        if($wechatMessage['msgType'] == WechatMessage::MSG_TYPES['text']){
+        // 处理纯文本消息json
+            // "msgType":1, "content":"nihao"    
+            // "msgType":10000, "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
+        if(in_array($wechatMessage['msgType'], WechatMessage::MSG_TYPES_SIMPLE)){
             $wechatMessage['content'] = ['content'=>$rawContent];
         }
         WechatMessage::create($wechatMessage);
@@ -271,27 +289,5 @@ class WeijuController extends Controller
                 }
             }
         }
-    }
-
-    // 新增用户
-    private function save_contact($who, $Wxid, $wechatBot){
-        $data = [
-            'userName' => $who,
-            'wechat_bot_id' => $Wxid
-        ];
-
-        // 查找用户，获取其详细信息
-        $wechat = new Wechat($Wxid);
-        $response = $wechat->friendFind($who);
-        if($response->ok() && $response['code'] === 1000){
-            $data = array_merge($data, $response['data']);
-        }
-        
-        // 保存为contact， 并更新所属bot关系
-        $contact = WechatContact::create($data);
-        $attach[$contact->id] =['remark'=>$contact->remark?:'', 'seat_user_id' => $wechatBot->team_id, 'type'=>3]; // 'type' => 3,// 0:friend好友,1:group群,2:public公众号,3:非好友群成员
-        $wechatBot->contacts()->sync($attach);
-        Log::info(__METHOD__, ['Saved new contact:', $who]);
-        return $contact;
     }
 }

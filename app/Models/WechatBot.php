@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\WechatAgreeQueue;
 use App\Services\Wechat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -167,10 +168,80 @@ class WechatBot extends Model
                     'msgType' => WechatMessage::MSG_TYPES[$typeName],
                 ];
                 $wechatMessage = WechatMessage::create($data);
-                Log::info(__METHOD__, ['WechatBot::send 主动发送成功', $wechatMessage->id]);
+                Log::info(__METHOD__, ['WechatBot::send 主动发送成功', $Wxid, $contact->nickName, $wechatMessage->id]);
             }else{
                 Log::error(__METHOD__, [__LINE__, $response->json(), $sendType, $contentWithTo]);
             }
         }
+    }
+
+    // $wechatBot = WechatBot::find(1);
+    // $wechat =  new Wechat($wechatBot->userName);
+    // $ToWxid = 'bluesky_still';
+    // $response = $wechat->friendFind($ToWxid);
+    // $response = $wechat->friendAdd($response['data']['v1'],$response['data']['v2']);
+    public function add($ToWxid)
+    {
+        $Wxid = $this->userName;
+        $wechat = new Wechat($Wxid);
+
+        //TODO try catch & try 3 times
+        
+        $response1 = $wechat->friendFind($ToWxid);
+        $response = $wechat->friendAdd($response1['data']['v1'], $response1['data']['v2']);
+        if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
+            Log::info(__METHOD__, ['WechatBot::add 主动添加好友成功', $Wxid, $ToWxid]);
+        }
+    }
+
+    // 同意添加好友请求
+    public function friendAgree($v1, $v2, $wxid, $delaySeconds=5)
+    {
+        WechatAgreeQueue::dispatch($v1, $v2, $this, $wxid)->delay(now()->addSeconds($delaySeconds));
+    }
+
+
+    public function wechat()
+    {
+        return new Wechat($this->userName);
+    }
+
+    // 新增用户
+        // 'public'=>0, // 0
+        // 'friend'=>1, // 1
+        // 'group'=>2, // 2
+        // 'stranger'=>3, // 3
+    public function addOrUpdateContact($wxid, $type=1){
+        $data = [
+            'userName' => $wxid,
+            'wechat_bot_id' => $this->id,
+        ];
+
+        // 查找用户，获取其详细信息
+        $response = $this->wechat->friendFind($wxid);
+        if($response->ok() && $response['code'] === 1000){
+            $data = array_merge($data, $response['data']);
+            // 保存为contact， 并更新所属bot关系
+            ($contact = WechatContact::firstWhere('userName', $data['userName']))
+            ? $contact->update($data) // 更新资料
+            : $contact = WechatContact::create($data);
+
+            $attach[$contact->id] =[
+                'remark' => $contact->remark?:$contact->nickName, 
+                'seat_user_id' => $this->team_id, 
+                'type' => $type
+            ];
+            $this->contacts()->syncWithoutDetaching($attach);
+            Log::info(__METHOD__, [$wxid, $contact]);
+            return $contact;
+        }else{
+            Log::error(__METHOD__, [$response->json()]);
+        }
+    }
+
+    public function setCallBackUrl($callbackSend=null, $heartBeat='', $linkMsgSend='')
+    {
+        $response = $this->wechat->setCallBackUrl($callbackSend, $heartBeat, $linkMsgSend);
+        Log::info(__METHOD__, [compact('callbackSend','heartBeat','linkMsgSend'), $response->json()]);
     }
 }

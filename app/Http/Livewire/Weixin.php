@@ -2,7 +2,7 @@
 
 namespace App\Http\Livewire;
 
-use App\Jobs\WeixinInit;
+use App\Jobs\WechatInitQueue;
 use Livewire\Component;
 use App\Services\Wechat;
 use App\Services\Weiju;
@@ -50,8 +50,7 @@ class Weixin extends Component
     public function updatedWechatWeijuWebhook($value){
         if(filter_var($value, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED)){ // url validate
             $this->wechatBot->setMeta('wechatWeijuWebhook', $value);
-            $wechat = new Wechat($this->wxid);
-            $response = $wechat->setCallBackUrl($value);
+            $this->wechatBot->setCallBackUrl($value);
         }
     }
 
@@ -172,7 +171,7 @@ class Weixin extends Component
                 $this->msg = $response['msg'] .  " 后台队列处理中，请按下面说明步骤操作，耐心等待3～4分钟后再刷新";
                 // 启动后台队列任务，循环直到 扫码确认成功！
                 Cache::put('weiju_wId', $response['data']['wId'], now()->addMinutes(5)); //防止多次刷新，多个Job
-                WeixinInit::dispatch($response['data']['wId'], $team, $user->id)->delay(now()->addSecond(3));
+                WechatInitQueue::dispatch($response['data']['wId'], $team, $user->id)->delay(now()->addSecond(3));
 
                 return ;
             }

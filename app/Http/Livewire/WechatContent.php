@@ -10,7 +10,7 @@ use App\Http\Livewire\DataTable\WithSorting;
 use App\Http\Livewire\DataTable\WithCachedRows;
 use App\Http\Livewire\DataTable\WithBulkActions;
 use App\Http\Livewire\DataTable\WithPerPagePagination;
-use App\Jobs\WechatBatchSendByTags;
+use App\Jobs\WechatSendByTagsQueue;
 use App\Rules\WechatContentRule;
 use Spatie\Tags\Tag;
 
@@ -113,7 +113,7 @@ class WechatContent extends Component
         }
         // add to Queue
         $wechatContent = Model::findOrFail($this->contentId);//TODO validate 必需是自己的内容
-        WechatBatchSendByTags::dispatch(
+        WechatSendByTagsQueue::dispatch(
             $this->wechatBot,
             $wechatContent,
             $this->selectedTags,

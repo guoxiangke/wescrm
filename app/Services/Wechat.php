@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 // Wechat API
 class Wechat {
@@ -49,14 +50,12 @@ class Wechat {
     public function getAllContacts():Response { return $this->http->post("/foreign/message/getAllContact", $this->data);}
     public function getFriendList():Response { return $this->http->post("/foreign/friends/getFriendList", $this->data);}
     
-    // 查找用户 Endpoint: /searchUser 不可靠，使用 /chat，
-    // 返回内容不含 labelId，非好友不包含v1
-    public function friendSearch($ToWxid):Response { return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));}
-    // 此接口不支持直接获取wxid开头的微信号信息！！！// wxid开头的微信号，调用⬆️搜索用户接口⬆️获取信息
+    // 查找用户 /searchUser 不可用，使用 /chat
+    // public function friendSearch($ToWxid):Response { return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));}
+    // 此接口仅支持直接获取以wxid开头的微信号信息！！！// wxid开头的微信号，调用⬆️搜索用户接口⬆️获取信息
     
-    // 适用于 非好友，获取V2
+    // 查找即陌生/好友 获取V1 V2 用于主动添加好友
     public function friendFind($ToWxid):Response {
-        // if(Str::startsWith($ToWxid, 'wxid_')) return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));
         return $this->http->post("/foreign/friends/searchUser", array_merge($this->data, get_defined_vars()));
     }
 
@@ -71,7 +70,7 @@ class Wechat {
         // $type 传3即可，添加来源：1-QQ号搜索，3-微信号搜索，4-QQ好友，8-通过群聊，12-来自QQ好友，14-通过群聊，15-手机号
         // v1必填	string	从搜索用户接口获取 
         // v2必填	string	从搜索用户接口获取
-    public function friendAdd($v1, $v2, $type=15, $verify="Hi"):Response { return $this->http->post("/foreign/friends/passAddFriends", array_merge($this->data, get_defined_vars()));}
+    public function friendAdd($v1, $v2, $type=3, $verify="Hi"):Response { return $this->http->post("/foreign/friends/passAddFriends", array_merge($this->data, get_defined_vars()));}
     
     #设置个人头头像 path为Url链接
     public function selfSetAvatar($path):Response { return $this->http->post("/foreign/friends/sendHeadImage", array_merge($this->data, get_defined_vars()));}
@@ -163,17 +162,98 @@ class Wechat {
         return $this->send($sendEndpoint, $data);
     }
 
-    // 转发图片、视频、文件
-    public function forword($ToWxid, $xmlContent) :Response 
+    // 消息转发 
+    // 图片、视频、文件 提供的有转发接口（foreign/message/sendRecvImage），其他使用主动发送方式转发
+    // $content => $xmlRawContent with ToWxid
+    // xmlRawContent = ['ToWxid'=>'filehelper', 'content'=>'<xml...']);
+    public function forword($type, $content):Response
     {
-        $data = array_merge($xmlContent, get_defined_vars());
-        $msg = xStringToArray($xmlContent);
-        if(Arr::has($msg, 'img')){
-            $sendEndpoint = 'sendRecvImage'; // sendRecvVideo //sendRecvFile
+        if(in_array($type,['image','video','file'])){
+            $sendEndpoint = 'sendRecv' . Str::camel("{$type}"); // sendRecvImage sendRecvVideo sendRecvFile
+        }else{
+            // text card link ...
+            $sendEndpoint = Str::camel("send_{$type}");
         }
-        
-        return $this->send($sendEndpoint, $data);
+        return $this->send($sendEndpoint, $content);
     }
 
     // region end 消息发送
+
+    // 获取标签列表
+    
+    // TODO 标签初始化！
+    public function getLables():Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/Wacat/getLables', $data);
+    }
+
+
+    // region 群操作
+    #
+
+    # 创建微信群
+        // "topic": "测试创建微信",
+        // "userNameList": "wxid_mij04zvb1m1w31,M952320157,wxid_om8j3vmdyivs22"
+    public function groupAdd($topic, $userNameList):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/groupAdd', $data);
+    }
+    # 获取群详情
+    public function getGroupInfo($ToWxid):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/getGroupInfo', $data);
+    }
+    # 设置群公告
+    public function setGroupTopic($chatroom, $topic):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/setName', $data);
+    }
+    # 设置群公告
+    public function setGroupNotic($ToWxid, $content):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/setGroupNotic', $data);
+    }
+    # 获取群二维码
+    public function getGroupQrCode($ToWxid):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/getGroupQrCode', $data);
+    }
+    # 群保存/取消到通讯录
+    public function seveGroup($chatroom, $isShow=true):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/seveGroup', $data);
+    }
+    #  添加群成员
+    public function addMember($ToWxid, $chatroom):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/addMember', $data);
+    }
+    # 邀请群成员
+    public function invateMember($ToWxid, $chatroom):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/invateMember', $data);
+    }
+    # 踢人
+    public function delMember($ToWxid, $chatRoomToWxid):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/invateMember', $data);
+    }
+    # 退出群聊
+    public function outGroup($ToWxid, $chatroom):Response 
+    {
+        $data = array_merge($this->data, get_defined_vars());
+        return $this->send('/foreign/group/outGroup', $data);
+    }
+
+    
 }

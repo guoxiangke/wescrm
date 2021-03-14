@@ -17,7 +17,8 @@ class CreateWechatMessagesTable extends Migration
             $table->id();
             
             // $table->unsignedTinyInteger('old:type')->nullable()->comment('message.data.type   int 0:文本消息（49也是0）;1:图片消息；2：视频消息');
-            $table->unsignedTinyInteger('type')->nullable()->comment('1:好友 发消息给 bot 2:群成员 发消息给 群 3:bot 主动发消息');
+            // $table->unsignedTinyInteger('type')->nullable()->comment('1:好友 发消息给 bot 2:群成员 发消息给 群 3:bot 主动发消息');
+            $table->unsignedSmallInteger('msgType')->comment('int 1:文本消息 10000:表示添加别人成功;47:动图;48:地图位置; // 49:红包、文件、链接、小程序; // 49 点击▶️收听');//message.data.msgType   
             // $table->boolean('self')->default(false)->comment('boolean:true为bot主动发送消息'); // message.data.self   boolean:false   主动发送消息？
             // $table->boolean('category')->default(false)->comment('int 0:私聊消息;1:群组消息');
 
@@ -45,7 +46,6 @@ class CreateWechatMessagesTable extends Migration
             // $table->text('pushContent')->default('')->comment('String:谁@了bot你');// message.data.pushContent String  
             // $table->unsignedInteger('timestamp')->comment('消息原始时间戳long：1613208757');// message.data.timestamp
             
-            $table->unsignedSmallInteger('msgType')->comment('int 1:文本消息 10000:表示添加别人成功;47:动图;48:地图位置; // 49:红包、文件、链接、小程序; // 49 点击▶️收听');//message.data.msgType   
 
             $table->softDeletes();
             $table->timestamps();

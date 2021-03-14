@@ -56,25 +56,38 @@ class WechatMessage extends Model
         33, //收到 小程序
 
     ];
+
+    // 纯文本 类型消息
+    const MSG_TYPES_SIMPLE = [
+        1, //文本
+        10000, //你已添加了xxx，现在可以开始聊天了。
+    ];
+
     const MSG_TYPES = [
         'text'=>1, //文本
+        // "msgType":1,"messageType":2,"content":"我通过了你的朋友验证请求，现在我们可以开始聊天了"
         'template'=>1, //发送带模版的文本 @see WechatBot::send(167)
         'image'=>3, // Img
         'url'=>5,// 5表示链接，
         'roomChatRecords'=>19,// 19表示群聊的聊天记录，
         'voice'=>34, // Voice? no data?
-        'addByCard'=>37,// 通过朋友推荐的名片，添加Bot为好友
+        'requestFriend' => 37,
+        // 收到好友请求
+            // "msgType":37 "messageType":2  <msg encryptusername="v3_xx@stranger" ticket="v4_xxx@stranger"  fromnickname=\"天空蔚蓝\" content=\"你好\"
+            // 通过朋友推荐的名片，添加Bot为好友
+        // 回复好友请求，没有消息
         'video'=>43, // Video 
         'emoji'=>47, // emoji
         'geo'=>48, // 地理位置
         'file'=>49, // 文件 // 49 点击▶️收听
-        'addByIm' =>65, // 
+        'addByIm' =>65, //  checked 
             // 我是xxx的xxx，添加我的企业微信与我联系吧。
         'agreeAddByIm' => 10000, //25984xxx7841966@openim
-            // 你已添加了xxx，现在可以开始聊天了。
             // 对方为企业微信用户，<_wc_custom_link_ color="#2782D7" href="https://weixin.qq.com/cgi-bin/readtemplate?t=work_wechat/about">了解更多</_wc_custom_link_>。
-
+            // "msgType":10000, "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
+            // "msgType":10000, "content":"天空蔚蓝开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证请求，对方验证通过后，才能聊天。<a href=\"weixin://findfriend/verifycontact\">发送朋友验证</a>
         'inviteToRoom'=>10002, // 邀请好友入群  // "$username$\"邀请你加入了群聊，群聊参与人还有：$others$"
+        
         'card' => 0,//?
     ];
 

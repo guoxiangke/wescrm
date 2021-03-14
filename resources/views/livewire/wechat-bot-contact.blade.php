@@ -7,7 +7,7 @@
     <!-- Top Bar -->
     <div class="flex justify-between">
         <div class="w-2/4 flex space-x-4 relative">
-            <x-input.text wire:model="filters.search" placeholder="Search ..." class="pl-10 pr-5 appearance-none h-10 w-full rounded-full text-sm focus:outline-none" />
+            <x-input.text wire:model.debounce.1000ms="filters.search" placeholder="Search ..." class="pl-10 pr-5 appearance-none h-10 w-full rounded-full text-sm focus:outline-none" />
             <button type="submit" class="absolute top-0 mt-3 left-0 ml-4">
                 <x-icon.search />
             </button>
@@ -77,7 +77,7 @@
                         <x-table.cell>
                             <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                 <p class="text-cool-gray-600 truncate">
-                                    <img title="{{ $wechatBotContact->contact->nickName}}" class="rounded-xl w-14" src="{{$wechatBotContact->contact->smallHead}}">
+                                    <img title="{{ $wechatBotContact->contact->nickName}}" alt="{{ $wechatBotContact->contact->userName}}" class="rounded-xl w-14" src="{{$wechatBotContact->contact->smallHead}}">
                                 </p>
                             </span>
                         </x-table.cell>

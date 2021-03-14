@@ -18,7 +18,7 @@ use Illuminate\Support\Arr;
 use phpDocumentor\Reflection\Types\Integer;
 
 // Init login of a wechatBot
-class WeixinInit implements ShouldQueue
+class WechatInitQueue implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -108,22 +108,24 @@ class WeixinInit implements ShouldQueue
                     $teamOwnerId = $this->team->owner->id;
                     foreach ($response['data'] as $type => $values) {
                         foreach ($values as $data) {
-                            $contact = WechatContact::firstWhere('userName', $data['userName']);
-                            if($contact) { // 更新资料
-                                $contact->update($data);
-                            }else{
-                                $contact = WechatContact::create($data);
-                            }
+                            ($contact = WechatContact::firstWhere('userName', $data['userName']))
+                                ? $contact->update($data) // 更新资料
+                                : $contact = WechatContact::create($data);
+
                             $remark = $data['remark']??null;
                             $nickName = $data['nickName']??null;
                             $remark = $remark??$nickName;
                             $attachs[$contact->id] = [
                                 'remark' => $remark,
                                 'type' => WechatContact::TYPES[$type],
+                                    // 'public'=>0, // 0
+                                    // 'friend'=>1, // 1
+                                    // 'group'=>2, // 2
+                                    // 'stranger'=>3, // 3
                                 'seat_user_id' => $teamOwnerId,
                             ];// @see https://laravel.com/docs/8.x/eloquent-relationships#updating-many-to-many-relationships
                         }
-                        Log::info("InitWechat: 保存通讯录 {$type} =>" . count($values));
+                        Log::info(__METHOD__, ["InitWechat", "保存通讯录", $type, count($values)]);
                     }
                     $wechatBot->contacts()->syncWithoutDetaching($attachs);
                 }else{
@@ -134,7 +136,7 @@ class WeixinInit implements ShouldQueue
                 if($response->ok() && $response['code'] == 1){
                     Log::debug(__METHOD__, ["setCallBackUrl"," 成功"]);
                 }else{
-                    Log::debug(__METHOD__, ["setCallBackUrl"," 失败", $response]);
+                    Log::debug(__METHOD__, ["setCallBackUrl"," 失败", $response->json()]);
                 }
 
                 // 更新在线客户端数量
@@ -144,7 +146,7 @@ class WeixinInit implements ShouldQueue
                 $loop = false;
                 break;
             }else{
-                Log::error(__METHOD__, [__LINE__, $this->wId, $response]);
+                Log::error(__METHOD__, [__LINE__, $this->wId, $response->json()]);
             }
             sleep(3);
             $loopCount++;
