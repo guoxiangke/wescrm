@@ -276,7 +276,9 @@
 
                       <div class="rta str-chat__textarea">
                         <textarea
-                          wire:model.debounce.1000ms="content" rows="1" placeholder="Send a message" class="rta__textarea str-chat__textarea__textarea" spellcheck="false" style="height: 38px !important;"></textarea>
+                          wire:model="content" 
+                          wire:keydown.enter.prevent="send"
+                          rows="1" placeholder="Send a message" class="rta__textarea str-chat__textarea__textarea" spellcheck="false" style="height: 38px !important;"></textarea>
                       </div>
                   </div>
               </div>

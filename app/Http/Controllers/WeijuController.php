@@ -30,6 +30,9 @@ class WeijuController extends Controller
     {
         $wechatMessage = $request['message']['data'];
 
+        //TODO 1s 内来两条同样的消息，放弃一个
+
+        
         // 企业微信账号：  25984983457841966@openim
         // 企业微信群
         // fromUser=sendUser=9223372041442168057@im.chatroom
@@ -66,6 +69,7 @@ class WeijuController extends Controller
                 $wechatMessage['type'] = 4;
             }
         }else{ // self：true 主动发送消息 时，from_contact_id == null
+            $wechatMessage['from_contact_id'] = null;
             $wechatMessage['type'] = 0;
             $wechatMessage['wechat_bot_id'] = $wechatMessage['sendUser'];
             $wechatMessage['conversation'] = $wechatMessage['toUser'];
@@ -75,7 +79,9 @@ class WeijuController extends Controller
         }
 
         // 把 string 转换成 id 表关系 foreignId
-        $wechatBot = WechatBot::with('meta')->firstWhere('userName', $wechatMessage['wechat_bot_id']);
+        // 更改过 微信用户名的 bot，通过手机主动发送消息到群后，会得到2个callback，用 firstOrFail 放弃一个
+        $wechatBot = WechatBot::with('meta')->where('userName', $wechatMessage['wechat_bot_id'])->firstOrFail();
+
         // 默认不接收公众号的消息
             // @see $wechatBot->setMeta('wechatListenGh', 0); 
             // (boolean) ($allMetaCollection['wechatListenGh']??false)
@@ -96,16 +102,21 @@ class WeijuController extends Controller
                     || in_array($wechatMessage['conversation'], (array) $wechatBot->getMeta('wechatListenRooms')))) {
                     Log::debug(__METHOD__, ['没有开启接收指定/全部群消息']);
                     return;
-                } 
+                }
             }
             
-            // 群里的某个非好友 成员 发言（处理之前初始化并没有保存为contact的情况）
             $contact = WechatContact::firstWhere('userName', $wechatMessage['from_contact_id']);
+            // 群里的某个非好友 成员 发言（处理之前初始化并没有保存为contact的情况）
             if(!$contact) {
                 $wxid = $wechatMessage['from_contact_id'];
                 $contact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['stranger']);// type=3
             }
             $wechatMessage['from_contact_id'] = $contact->id;
+        }else{
+            if($wechatMessage['from_contact_id'] !== null){
+                $contact = WechatContact::firstWhere('userName', $wechatMessage['from_contact_id']);
+                $wechatMessage['from_contact_id'] = $contact->id;
+            }
         }
 
         // 处理时间戳 // 2021-02-18 = 1613540658
@@ -149,7 +160,7 @@ class WeijuController extends Controller
                     $v1 = $msg['@attributes']['encryptusername'];
                     $v2 = $msg['@attributes']['ticket'];
                     $wechatBot->friendAgree($v1, $v2, $msg['@attributes']['fromusername']);
-
+                    $wechatMessage['content'] = $msg;
                     Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
                     break;
                 default:
@@ -288,5 +299,6 @@ class WeijuController extends Controller
                 }
             }
         }
+        return ['success'];
     }
 }
