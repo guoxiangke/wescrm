@@ -32,7 +32,7 @@ class WeijuController extends Controller
 
         //TODO 1s 内来两条同样的消息，放弃一个
 
-        
+
         // 企业微信账号：  25984983457841966@openim
         // 企业微信群
         // fromUser=sendUser=9223372041442168057@im.chatroom
@@ -126,8 +126,8 @@ class WeijuController extends Controller
         // 处理 <?xml  <msg
             // 0:简单文本消息 
             // 3:音频：点击▶️收听
+        $appmsgType = "init";
         if(Str::startsWith($wechatMessage['content'], '<?xml ')) {
-            $appmsgType = "init";
             $msg = xStringToArray($wechatMessage['content']);
             if(Arr::has($msg, 'appmsg.type')){
                 $appmsgType = $msg['appmsg']['type'];
