@@ -31,7 +31,7 @@ function toString($message)
 
 function xStringToJson($xmlString)
 { 
-    return json_encode(simplexml_load_string($xmlString));
+    return json_encode(simplexml_load_string($xmlString, null, LIBXML_NOCDATA));
 }
 
 function xStringToArray($xmlString)

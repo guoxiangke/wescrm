@@ -167,7 +167,7 @@ class WechatBot extends Model
                     'type' => 3, // 3:bot 主动发消息
                     'msgType' => WechatMessage::MSG_TYPES[$typeName],
                 ];
-                $wechatMessage = WechatMessage::create($data);
+                return $wechatMessage = WechatMessage::create($data);
                 Log::info(__METHOD__, ['WechatBot::send 主动发送成功', $Wxid, $contact->nickName, $wechatMessage->id]);
             }else{
                 Log::error(__METHOD__, [__LINE__, $response->json(), $sendType, $contentWithTo]);

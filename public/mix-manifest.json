@@ -1,4 +1,7 @@
 {
     "/js/app.js": "/js/app.js",
-    "/css/app.css": "/css/app.css"
+    "/css/app.css": "/css/app.css",
+    "/css/CreateChannel.css": "/css/CreateChannel.css",
+    "/css/MessagingChannelHeader.css": "/css/MessagingChannelHeader.css",
+    "/css/webchat.css": "/css/webchat.css"
 }

@@ -112,7 +112,16 @@ class WechatMessage extends Model
     }
 
 
+    public function from(){
+        return $this->hasOne(WechatContact::class, 'id', 'from_contact_id');
+    }
+
+
     public function wechatBot(){
         return $this->hasOne(WechatBot::class, 'id', 'wechat_bot_id');
+    }
+
+    public function seat(){
+        return $this->hasOne(User::class, 'id', 'seat_user_id');
     }
 }

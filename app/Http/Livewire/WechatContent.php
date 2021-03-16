@@ -34,14 +34,12 @@ class WechatContent extends Component
         $this->wechatBot = WechatBot::where('team_id', $currentTeamId)->firstOrFail();
         
         $this->contents = Model::where('wechat_bot_id', $this->wechatBot->id)->pluck('name','id');
-        // dd(WechatBotContact::with('contact')->where(['wechat_bot_id' => $wechatBot->id, 'type'=>WechatContact::TYPES['friend']])->first()->toArray());
         $this->editing = $this->makeBlankModel();
         $this->sorts = ['updated_at'=>'desc']; //默认排序
 
         $this->tagWith =  'wechat-contact-team-'.$currentTeamId;
         $this->tags = Tag::getWithType($this->tagWith)->pluck('name');
     }
-    // WechatContact::TYPES[$type], // 0:friend好友,1:group群,2:public公众号,3:非好友群成员
 
 
     public function render()

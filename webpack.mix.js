@@ -12,6 +12,9 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
+    .postCss('resources/css/webchat.css', 'public/css')
+    .postCss('resources/css/MessagingChannelHeader.css', 'public/css')
+    .postCss('resources/css/CreateChannel.css', 'public/css')
     .postCss('resources/css/app.css', 'public/css', [
         require('postcss-import'),
         require('tailwindcss'),
