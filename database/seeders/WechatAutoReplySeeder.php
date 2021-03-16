@@ -14,7 +14,7 @@ class WechatAutoReplySeeder extends Seeder
      */
     public function run()
     {
-        if (\App::environment('local')) {
+        if (true || \App::environment('local')) {
                 
             // hi* 代表以hi开头的
             // *hi   代表以hi结尾的

@@ -13,8 +13,8 @@ npm-debug.log
 yarn-error.log
 .DS_Store
 .idea/
-public/css/app.css
-public/js/app.js
+public/css/
+public/js/
 public/js/*.txt
 public/mix-manifest.json
 

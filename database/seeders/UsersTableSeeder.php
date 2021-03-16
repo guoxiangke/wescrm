@@ -16,7 +16,7 @@ class UsersTableSeeder extends Seeder
     public function run()
     {
         // For dev
-        if (\App::environment('local')) {
+        if (true || \App::environment('local')) {
             $userData = [
                 'name'     => 'admin',
                 'email'    => 'admin@admin.com',

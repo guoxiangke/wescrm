@@ -14,7 +14,7 @@ class WechatContentSeeder extends Seeder
      */
     public function run()
     { // For dev
-        if (\App::environment('local')) {
+        if (true || \App::environment('local')) {
                 
             $content = "主动发送 文本/链接/名片/图片/视频 消息到好友/群";
             $contents[] = ['type'=>'text', 'content'=>['data'=>compact('content')]];

@@ -7,7 +7,6 @@ use App\Models\WechatContact;
 use App\Models\WechatContent;
 use App\Models\WechatMessage;
 use App\Services\Tuling;
-use App\Services\Wechat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
