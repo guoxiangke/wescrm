@@ -166,6 +166,7 @@ class WeijuController extends Controller
                 case '10002': 
                     //"$username$"邀请你和"$names$"加入了群聊
                     // "fromUser" = "sendUser":"19341138594@chatroom"
+                    // "$username$\"修改群名为“$remark$”
                     $username = $msg['sysmsgtemplate']['content_template']['link_list']['link'][0]['memberlist']['member']['nickname'];
                     
                     $names = '';
@@ -180,6 +181,7 @@ class WeijuController extends Controller
                     
                     $replaced = preg_replace_array('/\$username\$/', [$username], $template);
                     $text = preg_replace_array('/\$names\$/', [$names], $replaced);
+                    $text = preg_replace_array('/\$remark\$/', [$names], $replaced);
                     $wechatMessage['content'] = ['content' => $text];
                     // TODO 保存群到通讯录，下次init后，应该才可以获取到群info？！ // "fromUser":"19341138594@chatroom"
                     $wechatBot->wechat->saveGroup($wechatMessage["fromUser"]);
