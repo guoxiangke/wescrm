@@ -83,6 +83,7 @@ class WechatMessage extends Model
         'addByIm' =>65, //  checked 
             // 我是xxx的xxx，添加我的企业微信与我联系吧。
         'agreeAddByIm' => 10000, //25984xxx7841966@openim
+            // "msgType":10000, ,"content":"你被\"天空蔚蓝\"移出群聊"
             // 对方为企业微信用户，<_wc_custom_link_ color="#2782D7" href="https://weixin.qq.com/cgi-bin/readtemplate?t=work_wechat/about">了解更多</_wc_custom_link_>。
             // "msgType":10000, "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
             // "msgType":10000, "content":"天空蔚蓝开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证请求，对方验证通过后，才能聊天。<a href=\"weixin://findfriend/verifycontact\">发送朋友验证</a>

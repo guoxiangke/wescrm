@@ -163,30 +163,8 @@ class WeijuController extends Controller
                     $wechatMessage['content'] = $msg;
                     Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
                     break;
-                case '10002': 
-                    //"$username$"邀请你和"$names$"加入了群聊
-                    // "fromUser" = "sendUser":"19341138594@chatroom"
-                    // "$username$\"修改群名为“$remark$”
-                    $username = $msg['sysmsgtemplate']['content_template']['link_list']['link'][0]['memberlist']['member']['nickname'];
-                    
-                    $tempMembers = $msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'];
-                    if(count($tempMembers)>2){
-                        $names = collect($tempMembers)->pluck('nickname')->join('、','和');
-                    }else{ // 只有3个人的群
-                        $names = $tempMembers['nickname'];
-                    }
-                    $template = $msg['sysmsgtemplate']['content_template']['template'];
-                    
-                    $replaced = preg_replace_array('/\$username\$/', [$username], $template);
-                    $text = preg_replace_array('/\$names\$/', [$names], $replaced);
-                    $text = preg_replace_array('/\$remark\$/', [$names], $replaced);
-                    $wechatMessage['content'] = ['content' => $text];
-                    // TODO 保存群到通讯录，下次init后，应该才可以获取到群info？！ // "fromUser":"19341138594@chatroom"
-                    $wechatBot->wechat->saveGroup($wechatMessage["fromUser"]);
-                    Log::debug(__METHOD__, ['加入群聊', $text]);
-                    break;
                 default:
-                    Log::debug(__METHOD__, ['<msg消息', "待处理", $request['message']]);
+                    Log::debug(__METHOD__, ['<msg开头信息', "待处理", $wechatMessage['msgType'], $request['message']]);
                     break;
             }
 
@@ -199,6 +177,36 @@ class WeijuController extends Controller
             // }else{
             //     Log::debug(__METHOD__, ["待处理复杂XML消息", $request['message']]);
             // }
+        }elseif(Str::startsWith($wechatMessage['content'], '<sysmsg')){
+            $msg = xStringToArray($wechatMessage['content']);
+            switch ($wechatMessage['msgType']) {
+                case '10002': 
+                    //"$username$"邀请你和"$names$"加入了群聊
+                    // "$username$\"修改群名为“$remark$”
+                    // "$username$\"邀请你加入了群聊，群聊参与人还有：$others$
+                    $username = $msg['sysmsgtemplate']['content_template']['link_list']['link'][0]['memberlist']['member']['nickname'];
+                    
+                    $tempMembers = $msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'];
+                    if(count($tempMembers)>2){
+                        $names = collect($tempMembers)->pluck('nickname')->join('、','和');
+                    }else{ // 只有3个人的群
+                        $names = $tempMembers['nickname'];
+                    }
+                    $template = $msg['sysmsgtemplate']['content_template']['template'];
+                    
+                    $replaced = preg_replace_array('/\$username\$/', [$username], $template);
+                    $replaced = preg_replace_array('/\$names\$/', [$names], $replaced);
+                    $replaced = preg_replace_array('/\$remark\$/', [$names], $replaced);
+                    $replaced = preg_replace_array('/\$others\$/', [$names], $replaced);
+                    $wechatMessage['content'] = ['content' => $replaced];
+                    // TODO 保存群到通讯录，下次init后，应该才可以获取到群info？
+                    $wechatBot->wechat->saveGroup($wechatMessage["fromUser"]); // "fromUser" = "sendUser":"19341138594@chatroom"
+                    Log::debug(__METHOD__, ['<sysmsg开头信息', $replaced]);
+                    break;
+                default:
+                    Log::debug(__METHOD__, ['<sysmsg开头信息', "待处理", $request['message']]);
+                    break;
+            }
         }else{ // 简单消息
             Log::debug(__METHOD__, ['简单消息', 'or待处理', $request['message']]);
             // "msgType":10000, "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
@@ -282,8 +290,6 @@ class WeijuController extends Controller
             }
         }
         // 处理纯文本消息json
-            // "msgType":1, "content":"nihao"    
-            // "msgType":10000, "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
         if(in_array($wechatMessage['msgType'], WechatMessage::MSG_TYPES_SIMPLE)){
             $wechatMessage['content'] = ['content'=>$rawContent];
         }
