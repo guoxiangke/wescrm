@@ -169,13 +169,11 @@ class WeijuController extends Controller
                     // "$username$\"修改群名为“$remark$”
                     $username = $msg['sysmsgtemplate']['content_template']['link_list']['link'][0]['memberlist']['member']['nickname'];
                     
-                    $names = '';
-                    if(is_array($msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'])){
-                        foreach ($msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'] as $member) {
-                            $names .= $member['nickname']. '、';
-                        }
+                    $tempMembers = $msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'];
+                    if(count($tempMembers)>2){
+                        $names = collect($tempMembers)->pluck('nickname')->join('、','和');
                     }else{ // 只有3个人的群
-                        $names = $msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member']['nickname'];
+                        $names = $tempMembers['nickname'];
                     }
                     $template = $msg['sysmsgtemplate']['content_template']['template'];
                     
