@@ -163,6 +163,28 @@ class WeijuController extends Controller
                     $wechatMessage['content'] = $msg;
                     Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
                     break;
+                case '10002': 
+                    //"$username$"邀请你和"$names$"加入了群聊
+                    // "fromUser" = "sendUser":"19341138594@chatroom"
+                    $username = $msg['sysmsgtemplate']['content_template']['link_list']['link'][0]['memberlist']['member']['nickname'];
+                    
+                    $names = '';
+                    if(is_array($msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'])){
+                        foreach ($msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'] as $member) {
+                            $names .= $member['nickname']. '、';
+                        }
+                    }else{ // 只有3个人的群
+                        $names = $msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member']['nickname'];
+                    }
+                    $template = $msg['sysmsgtemplate']['content_template']['template'];
+                    
+                    $replaced = preg_replace_array('/\$username\$/', [$username], $template);
+                    $text = preg_replace_array('/\$names\$/', [$names], $replaced);
+                    $wechatMessage['content'] = ['content' => $text];
+                    // TODO 保存群到通讯录，下次init后，应该才可以获取到群info？！ // "fromUser":"19341138594@chatroom"
+                    $wechatBot->wechat->saveGroup($wechatMessage["fromUser"]);
+                    Log::debug(__METHOD__, ['加入群聊', $text]);
+                    break;
                 default:
                     Log::debug(__METHOD__, ['<msg消息', "待处理", $request['message']]);
                     break;

@@ -51,7 +51,7 @@ class Wechat {
     public function getFriendList():Response { return $this->http->post("/foreign/friends/getFriendList", $this->data);}
     
     // 查找用户 /searchUser 不可用，使用 /chat
-    // public function friendSearch($ToWxid):Response { return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));}
+    public function friendSearch($ToWxid):Response { return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));}
     // 此接口仅支持直接获取以wxid开头的微信号信息！！！// wxid开头的微信号，调用⬆️搜索用户接口⬆️获取信息
     
     // 查找即陌生/好友 获取V1 V2 用于主动添加好友
@@ -185,7 +185,7 @@ class Wechat {
     public function getLables():Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/Wacat/getLables', $data);
+        return $this->http->post('/foreign/Wacat/getLables', $data);
     }
 
 
@@ -198,61 +198,62 @@ class Wechat {
     public function groupAdd($topic, $userNameList):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/groupAdd', $data);
+        return $this->http->post('/foreign/group/groupAdd', $data);
     }
     # 获取群详情
     public function getGroupInfo($ToWxid):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/getGroupInfo', $data);
+        return $this->http->post('/foreign/group/getGroupInfo', $data);
     }
     # 设置群公告
     public function setGroupTopic($chatroom, $topic):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/setName', $data);
+        return $this->http->post('/foreign/group/setName', $data);
     }
     # 设置群公告
     public function setGroupNotic($ToWxid, $content):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/setGroupNotic', $data);
+        return $this->http->post('/foreign/group/setGroupNotic', $data);
     }
     # 获取群二维码
     public function getGroupQrCode($ToWxid):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/getGroupQrCode', $data);
+        return $this->http->post('/foreign/group/getGroupQrCode', $data);
     }
     # 群保存/取消到通讯录
-    public function seveGroup($chatroom, $isShow=true):Response 
+    public function saveGroup($chatroom, $isShow=true):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/seveGroup', $data);
+        info($data);
+        return $this->http->post('/foreign/group/seveGroup', $data);
     }
     #  添加群成员
     public function addMember($ToWxid, $chatroom):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/addMember', $data);
+        return $this->http->post('/foreign/group/addMember', $data);
     }
     # 邀请群成员
     public function invateMember($ToWxid, $chatroom):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/invateMember', $data);
+        return $this->http->post('/foreign/group/invateMember', $data);
     }
     # 踢人
     public function delMember($ToWxid, $chatRoomToWxid):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/invateMember', $data);
+        return $this->http->post('/foreign/group/invateMember', $data);
     }
     # 退出群聊
     public function outGroup($ToWxid, $chatroom):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        return $this->send('/foreign/group/outGroup', $data);
+        return $this->http->post('/foreign/group/outGroup', $data);
     }
 
     
