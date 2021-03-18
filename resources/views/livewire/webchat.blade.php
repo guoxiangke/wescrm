@@ -1,4 +1,4 @@
-<div id="root">
+<div id="root" wire:poll.7000ms>
   <div id="mobile-channel-list" 
     class="{{$isMobileShowContact?'show':''}}">
     <div class="str-chat str-chat-channel-list messaging {{ $isDarkUi?"dark":"light"  }}">
