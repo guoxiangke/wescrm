@@ -77,7 +77,10 @@
                         <x-table.cell>
                             <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                 <p class="text-cool-gray-600 truncate">
-                                    <img title="{{ $wechatBotContact->contact->nickName}}" alt="{{ $wechatBotContact->contact->userName}}" class="rounded-xl w-14" src="{{$wechatBotContact->contact->smallHead}}">
+                                    <img 
+                                        title="{{ $wechatBotContact->contact->nickName}}" 
+                                        alt="{{ $wechatBotContact->contact->userName}}" class="rounded-xl w-14" 
+                                        src="{{$wechatBotContact->contact->smallHead?$wechatBotContact->contact->smallHead:$defaultAvatar}}">
                                 </p>
                             </span>
                         </x-table.cell>

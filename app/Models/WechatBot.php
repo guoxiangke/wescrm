@@ -180,17 +180,18 @@ class WechatBot extends Model
     // $ToWxid = 'bluesky_still';
     // $response = $wechat->friendFind($ToWxid);
     // $response = $wechat->friendAdd($response['data']['v1'],$response['data']['v2']);
-    public function add($ToWxid)
+    public function addFriend($ToWxid)
     {
         $Wxid = $this->userName;
         $wechat = new Wechat($Wxid);
 
         //TODO try catch & try 3 times
-        
         $response1 = $wechat->friendFind($ToWxid);
-        $response = $wechat->friendAdd($response1['data']['v1'], $response1['data']['v2']);
-        if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
-            Log::info(__METHOD__, ['WechatBot::add 主动添加好友成功', $Wxid, $ToWxid]);
+        if(isset($response1['data']['v1']) && isset($response1['data']['v1'])){
+            $response = $wechat->friendAdd($response1['data']['v1'], $response1['data']['v2']);
+            if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
+                Log::info(__METHOD__, ['WechatBot::add 主动添加好友成功', $Wxid, $ToWxid]);
+            }
         }
     }
 

@@ -1,22 +1,44 @@
 <div id="root">
-  <div id="mobile-channel-list" class="">
+  <div id="mobile-channel-list" 
+    class="{{$isMobileShowContact?'show':''}}">
     <div class="str-chat str-chat-channel-list messaging {{ $isDarkUi?"dark":"light"  }}">
-      <div class="messaging__channel-list">
-        <div class="messaging__channel-list__header">
-          <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" title="holy-dew-9" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
-            <img data-testid="avatar-img" src="{{$seatUserAvatar}}" alt="{{$seatUserName}}" class="str-chat__avatar-image str-chat__avatar-image--loaded" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+      <div class="l-header p-4 mb-1">
+        <div class="flex justify-between p-4">
+          <div class="flex">
+            <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" title="holy-dew-9" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
+              <img data-testid="avatar-img" src="{{$seatUserAvatar}}" alt="{{$seatUserName}}" class="str-chat__avatar-image str-chat__avatar-image--loaded" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+            </div>
+            <div>
+              <div class="messaging__channel-list__header__name">{{$seatUserName}}</div>
+              <div class="messaging__channel-list__header__name-2">{{$currentTeamName}}</div>
+            </div>
+            
           </div>
-          <div class="messaging__channel-list__header__name">{{$seatUserName}} <br/> {{$currentTeamName}}</div>
-          <button title="切换主题" wire:click="$toggle('isDarkUi')" class="messaging__channel-list__header__button">
-            <svg width="18" height="18" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg"><path d="M18.44,34.68a18.22,18.22,0,0,1-2.94-.24,18.18,18.18,0,0,1-15-20.86A18.06,18.06,0,0,1,9.59.63,2.42,2.42,0,0,1,12.2.79a2.39,2.39,0,0,1,1,2.41L11.9,3.1l1.23.22A15.66,15.66,0,0,0,23.34,21h0a15.82,15.82,0,0,0,8.47.53A2.44,2.44,0,0,1,34.47,25,18.18,18.18,0,0,1,18.44,34.68ZM10.67,2.89a15.67,15.67,0,0,0-5,22.77A15.66,15.66,0,0,0,32.18,24a18.49,18.49,0,0,1-9.65-.64A18.18,18.18,0,0,1,10.67,2.89Z"/></svg>
-          </button>
 
-          <button title="逐个群发/拉群发送？" wire:click="$toggle('isCreating')" class="messaging__channel-list__header__button">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M18 17.9708H0V13.7278L13.435 0.292787C13.8255 -0.0975955 14.4585 -0.0975955 14.849 0.292787L17.678 3.12179C18.0684 3.51229 18.0684 4.14529 17.678 4.53579L6.243 15.9708H18V17.9708ZM2 15.9708H3.414L12.728 6.65679L11.314 5.24279L2 14.5568V15.9708ZM15.556 3.82879L14.142 5.24279L12.728 3.82879L14.142 2.41479L15.556 3.82879Z" fill="#E9E9EA">
-              </path>
-            </svg>
-          </button>
+          <div class="flex">
+            <button title="切换主题" wire:click="$toggle('isDarkUi')" class="messaging__channel-list__header__button">
+              <svg width="18" height="18" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg"><path d="M18.44,34.68a18.22,18.22,0,0,1-2.94-.24,18.18,18.18,0,0,1-15-20.86A18.06,18.06,0,0,1,9.59.63,2.42,2.42,0,0,1,12.2.79a2.39,2.39,0,0,1,1,2.41L11.9,3.1l1.23.22A15.66,15.66,0,0,0,23.34,21h0a15.82,15.82,0,0,0,8.47.53A2.44,2.44,0,0,1,34.47,25,18.18,18.18,0,0,1,18.44,34.68ZM10.67,2.89a15.67,15.67,0,0,0-5,22.77A15.66,15.66,0,0,0,32.18,24a18.49,18.49,0,0,1-9.65-.64A18.18,18.18,0,0,1,10.67,2.89Z"/></svg>
+            </button>
+
+            @if(!$isCreating)
+            <button title="逐个群发/拉群发送？" wire:click="$toggle('isCreating')" class="messaging__channel-list__header__button">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M18 17.9708H0V13.7278L13.435 0.292787C13.8255 -0.0975955 14.4585 -0.0975955 14.849 0.292787L17.678 3.12179C18.0684 3.51229 18.0684 4.14529 17.678 4.53579L6.243 15.9708H18V17.9708ZM2 15.9708H3.414L12.728 6.65679L11.314 5.24279L2 14.5568V15.9708ZM15.556 3.82879L14.142 5.24279L12.728 3.82879L14.142 2.41479L15.556 3.82879Z" fill="#E9E9EA">
+                </path>
+              </svg>
+            </button>
+            @endif
+
+            <div class="close-mobile-create"
+              wire:click="$toggle('isMobileShowContact')">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2Z" fill="#858688">
+                </path>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M16.7247 15.3997L13.325 12L16.7247 8.60029C17.0918 8.23324 17.0918 7.64233 16.7247 7.27528C16.3577 6.90824 15.7668 6.90824 15.3997 7.27528L12 10.675L8.60029 7.27528C8.23324 6.90824 7.64233 6.90824 7.27528 7.27528C6.90824 7.64233 6.90824 8.23324 7.27528 8.60029L10.675 12L7.27528 15.3997C6.90824 15.7668 6.90824 16.3577 7.27528 16.7247C7.64233 17.0918 8.23324 17.0918 8.60029 16.7247L12 13.325L15.3997 16.7247C15.7668 17.0918 16.3577 17.0918 16.7247 16.7247C17.0892 16.3577 17.0892 15.7642 16.7247 15.3997Z" fill="white">
+                </path>
+              </svg>
+            </div>
+          </div>
         </div>
         
 
@@ -24,7 +46,7 @@
           <header>
             <div class="messaging-create-channel__left-0">
               <div class="users-input-container relative">
-                <form class="mb-8">
+                <form class="">
                   <input placeholder="Start typing for suggestions" type="text" class="messaging-create-channel__input
                   border-gray-300 border-indigo-200 ring ring-indigo-100 ring-opacity-40 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full" value=""
                     wire:model.debounce.1000ms="search" >
@@ -32,14 +54,6 @@
                       <x-icon.search />
                   </button>
                 </form>
-              </div>
-              <div class="close-mobile-create">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2Z" fill="#858688">
-                  </path>
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M16.7247 15.3997L13.325 12L16.7247 8.60029C17.0918 8.23324 17.0918 7.64233 16.7247 7.27528C16.3577 6.90824 15.7668 6.90824 15.3997 7.27528L12 10.675L8.60029 7.27528C8.23324 6.90824 7.64233 6.90824 7.27528 7.27528C6.90824 7.64233 6.90824 8.23324 7.27528 8.60029L10.675 12L7.27528 15.3997C6.90824 15.7668 6.90824 16.3577 7.27528 16.7247C7.64233 17.0918 8.23324 17.0918 8.60029 16.7247L12 13.325L15.3997 16.7247C15.7668 17.0918 16.3577 17.0918 16.7247 16.7247C17.0892 16.3577 17.0892 15.7642 16.7247 15.3997Z" fill="white">
-                  </path>
-                </svg>
               </div>
             </div>
           </header>
@@ -52,7 +66,7 @@
                     wire:click="$set('currentConversionId', {{$wechatBotContact->contact->id}})">
                     <li class="messaging-create-channel__user-result">
                       <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
-                        <img data-testid="avatar-img" src="{{ $wechatBotContact->contact->smallHead }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+                        <img data-testid="avatar-imgs" src="{{ $wechatBotContact->contact->smallHead?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
                       </div>
                       <div class="messaging-create-channel__user-result__details">
                         <span>{{$wechatBotContact->remark}}</span>
@@ -67,15 +81,16 @@
             </ul>
           </main>
         </div>
-
+      </div>
+      <div class="messaging__channel-list">
         @foreach ($conversions as $contactId => $conversion)
         <div wire:click="$set('currentConversionId', {{$contactId}})" id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversionId===$contactId?'selected':'' }} ">
           <div class="channel-preview__avatars">
-            <img data-testid="avatar-img" src="{{$conversion[0]['contact']['smallHead']}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+            <img data-testid="avatar-img" src="{{$conversion[0]['contact']['smallHead']?:$defaultAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
           </div>
           <div class="channel-preview__content-wrapper">
             <div class="channel-preview__content-top">
-              <p class="channel-preview__content-name">{{$conversion[0]['contact']['nickName']}}</p>
+              <p class="channel-preview__content-name">{{$conversion[0]['contact']['nickName']?:'新加入群'.$conversion[0]['contact']['id'] }}</p>
               <p class="channel-preview__content-time">{{ Illuminate\Support\Carbon::parse($conversion[0]['updated_at'])->diffForHumans() }}</p>
             </div>
             <p class="channel-preview__content-message">{{ $conversion[0]['content']['content']??'有消息🆕' }}</p>
@@ -110,7 +125,8 @@
                     wire:model.debounce.1000ms="search" >
                 </form>
               </div>
-              <div class="close-mobile-create">
+              <div class="close-mobile-create"
+                wire:click="$toggle('isMobileShowContact')">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2Z" fill="#858688">
                   </path>
@@ -129,16 +145,18 @@
       @else 
         <div class="str-chat__main-panel">
           <div class="messaging__channel-header">
-            <div id="mobile-nav-icon" class="{{ $isDarkUi?"dark":"light"  }}">
+            <div id="mobile-nav-icon" 
+              wire:click="$toggle('isMobileShowContact')"
+              class="{{ $isDarkUi?"dark":"light" }}">
               <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="cursor: pointer; margin: 10px;">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M0.5 0.333344H15.5V2.00001H0.5V0.333344ZM0.5 6.16667H15.5V7.83334H0.5V6.16667ZM15.5 12H0.5V13.6667H15.5V12Z" fill="white">
                 </path>
               </svg>
             </div>
             <div class="messaging__channel-header__avatars"> 
-              <img data-testid="avatar-img" src="{{$conversions[$currentConversionId][0]['contact']['smallHead']}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+              <img data-testid="avatar-img" src="{{ $conversions[$currentConversionId][0]['contact']['smallHead']?:$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
             </div>
-            <div class="channel-header__name">{{ $conversions[$currentConversionId][0]['contact']['nickName'] }}</div>
+            <div class="channel-header__name">{{ $conversions[$currentConversionId][0]['contact']['nickName']?:'暂无群名'.$conversions[$currentConversionId][0]['contact']['id'] }}</div>
             <div class="messaging__channel-header__right">
               <div class="messaging__typing-indicator">
                 <div>
@@ -157,8 +175,11 @@
                 </li>
 
                 @foreach (array_reverse($conversions[$currentConversionId]) as $conversion)
-                <li class="str-chat__li str-chat__li--single">
-                  <div class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text {{ $conversion['seat_user_id'] ?'str-chat__message--me str-chat__message-simple--me':'' }}  ">
+                <li class="str-chat__li str-chat__li--single" id="conversion-{{$conversion['id']}}">
+                  <div 
+                    class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text 
+                    {{ $conversion['seat_user_id'] ?'str-chat__message--me str-chat__message-simple--me':'' }} 
+                    ">
                     
                     @if($conversion['seat_user_id'])
                       <span style="display: block" class="str-chat__message-simple-status" data-testid="message-status-received">
@@ -166,13 +187,28 @@
                         <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.72 6.633a.955.955 0 1 0-1.352-1.352L6.986 8.663 5.633 7.31A.956.956 0 1 0 4.28 8.663l2.029 2.028a.956.956 0 0 0 1.353 0l4.058-4.058z" fill="#006CFF" fill-rule="evenodd"></path>
                         </svg>
-                    </span>
-                    @endif
+                      </span>
 
+                      <div style="display: block" class="str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" 
+                        style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
+                        <img data-testid="avatar-img" 
+                          src="{{$conversion['seat']['profile_photo_url']}}"
+                          alt="s"
+                          class="str-chat__avatar-image str-chat__avatar-image--loaded" 
+                          style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
+                      </div>
+                    @else
                     <div style="display: block" class="str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;
                     {{ $isRoom?'':'display:none' }}">
-                      <img data-testid="avatar-img" src="{{ $conversion['from'] ? $conversion['from']['smallHead'] : $conversion['contact']['smallHead'] }}" alt="s" class="str-chat__avatar-image str-chat__avatar-image--loaded" style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
+                      <img data-testid="avatar-img" 
+                        src="{{ $conversion['from'] 
+                          ? ($conversion['from']['smallHead']?:$defaultAvatar) 
+                          : ($conversion['contact']['smallHead']?:$defaultAvatar) }}"
+                        alt="s"
+                        class="str-chat__avatar-image str-chat__avatar-image--loaded" 
+                        style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
                     </div>
+                    @endif
 
                     @php
                       // TODO   处理 content   
@@ -180,7 +216,7 @@
                     <div data-testid="message-inner" class="str-chat__message-inner">
                       <div class="str-chat__message-text">
                         <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
-                          <p>{{$conversion['content']['content']??''}}</p>
+                          <p>{{$conversion['content']['content']??'暂未处理消息'}}</p>
                         </div>
                         <div data-testid="message-options" class="str-chat__message-simple__actions">
                           <div data-testid="message-reaction-action" class="str-chat__message-simple__actions__action str-chat__message-simple__actions__action--reactions">
@@ -272,7 +308,7 @@
                   <div class="messaging-input__input-wrapper">
                       
                     <div 
-                      style="display: none" class="rfu-image-previewer"><div class="rfu-image-previewer__image rfu-image-previewer__image--loaded"><div class="rfu-thumbnail__wrapper" style="width: 100px; height: 100px;"><div class="rfu-thumbnail__overlay"><div class="rfu-icon-button" role="button"><div><svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path d="M465 5c5.53 0 10 4.47 10 10s-4.47 10-10 10-10-4.47-10-10 4.47-10 10-10zm3.59 5L465 13.59 461.41 10 460 11.41l3.59 3.59-3.59 3.59 1.41 1.41 3.59-3.59 3.59 3.59 1.41-1.41-3.59-3.59 3.59-3.59-1.41-1.41z" id="b"></path><filter x="-30%" y="-30%" width="160%" height="160%" filterUnits="objectBoundingBox" id="a"><feOffset in="SourceAlpha" result="shadowOffsetOuter1"></feOffset><feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0" in="shadowBlurOuter1"></feColorMatrix></filter></defs><g transform="translate(-451 -1)" fill-rule="nonzero" fill="none"><use fill="#000" filter="url(#a)" xlink:href="#b"></use><use fill="#FFF" fill-rule="evenodd" xlink:href="#b"></use></g></svg></div></div></div><img src="xxxx" class="rfu-thumbnail__image" alt=""></div></div><div class="rfu-image-upload-button"><label><input type="file" class="rfu-image-input" accept="image/*" multiple=""><div role="button" class="rfu-thumbnail-placeholder"><svg width="14" height="15" viewBox="0 0 14 15" xmlns="http://www.w3.org/2000/svg"><path d="M14 8.998H8v6H6v-6H0v-2h6v-6h2v6h6z" fill="#A0B2B8" fill-rule="nonzero"></path></svg></div></label></div></div>
+                      style="display: none" class="rfu-image-previewer"><div class="rfu-image-previewer__image rfu-image-previewer__image--loaded"><div class="rfu-thumbnail__wrapper" style="width: 100px; height: 100px;"><div class="rfu-thumbnail__overlay"><div class="rfu-icon-button" role="button"><div><svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path d="M465 5c5.53 0 10 4.47 10 10s-4.47 10-10 10-10-4.47-10-10 4.47-10 10-10zm3.59 5L465 13.59 461.41 10 460 11.41l3.59 3.59-3.59 3.59 1.41 1.41 3.59-3.59 3.59 3.59 1.41-1.41-3.59-3.59 3.59-3.59-1.41-1.41z" id="b"></path><filter x="-30%" y="-30%" width="160%" height="160%" filterUnits="objectBoundingBox" id="a"><feOffset in="SourceAlpha" result="shadowOffsetOuter1"></feOffset><feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0" in="shadowBlurOuter1"></feColorMatrix></filter></defs><g transform="translate(-451 -1)" fill-rule="nonzero" fill="none"><use fill="#000" filter="url(#a)" xlink:href="#b"></use><use fill="#FFF" fill-rule="evenodd" xlink:href="#b"></use></g></svg></div></div></div><img src="{{$defaultAvatar}}" class="rfu-thumbnail__image" alt=""></div></div><div class="rfu-image-upload-button"><label><input type="file" class="rfu-image-input" accept="image/*" multiple=""><div role="button" class="rfu-thumbnail-placeholder"><svg width="14" height="15" viewBox="0 0 14 15" xmlns="http://www.w3.org/2000/svg"><path d="M14 8.998H8v6H6v-6H0v-2h6v-6h2v6h6z" fill="#A0B2B8" fill-rule="nonzero"></path></svg></div></label></div></div>
 
                       <div class="rta str-chat__textarea">
                         <textarea
@@ -317,7 +353,7 @@
                   <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" title="plain-paper-2" style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
                       <img
                           data-testid="avatar-img"
-                          src="./static/media/photo-1463453091185-61582044d556.a10d0ecf.jpeg"
+                          src="{{ $defaultAvatar }}"
                           alt="p"
                           class="str-chat__avatar-image str-chat__avatar-image--loaded"
                           style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;"
@@ -391,7 +427,7 @@
 <style>
 
 @media screen and (max-width: 640px) {
-  /* .messaging__channel-header__avatars {
+  .messaging__channel-header__avatars {
     margin-left: 10px;
   }
   .str-chat-channel .str-chat__container{
@@ -399,25 +435,22 @@
   }
   .messaging.str-chat .str-chat__thread{
     display: none;
-  } */
+  }
+}
+.messaging__channel-list__header__name-2{
+  color: #999;
 }
 
+.str-chat__list{
+  scroll-behavior: smooth;
+}
 </style>
 
 <script>
-
-  var scrolled = false;
-  function updateScroll(){
-      if(!scrolled){
-          var element = document.querySelector(".str-chat__list ");
-          element.scrollTop = element.scrollHeight;
-      }
-  }
-
-  // $("#yourDivID").on('scroll', function(){
-  //     scrolled=true;
-  // });
-
-  // var element = document.querySelector(".str-chat__list ");
-  // element.scrollTop = element.scrollHeight;
+  document.addEventListener('livewire:load', function () {
+    Livewire.on('scrollToEnd', () => {
+        let element = document.querySelector(".str-chat__list");
+        element.scrollTop = element.scrollHeight;
+    })
+  })
 </script>

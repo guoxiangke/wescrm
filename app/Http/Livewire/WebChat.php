@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Services\Wechat;
 use App\Models\WechatBot;
 use App\Models\WechatBotContact;
+use App\Models\WechatContact;
 use App\Models\WechatContent;
 use App\Models\WechatMessage;
 use Illuminate\Support\Facades\Cache;
@@ -16,9 +17,11 @@ use Illuminate\Support\Str;
 class WebChat extends Component
 {
 
+    public bool $isThread = false;
+    public bool $isMobileShowContact = false;
+
     public bool $isCreating = true;
     public bool $isDarkUi = false;
-    public bool $isThread = true;
     public  $conversions;
     public int $currentConversionId = 0;
     public bool $isRoom = false;
@@ -33,11 +36,15 @@ class WebChat extends Component
     public WechatBot $wechatBot;
     public $wechatBotContacts;
 
+    public string $defaultAvatar = WechatContact::DEFAULT_AVATAR; // fallback
+
     public function mount()
     {
         $user = auth()->user();
+        
         $this->currentTeamName = $user->currentTeam->name;
         $this->seatUserName = $user->name;
+        $this->seatUserAvatar = $user->profile_photo_url;
 
         $messages = WechatMessage::with(['contact', 'from', 'seat'])->orderBy('id', 'desc')->take(100)->get();
         // BadMethodCallException: Method Illuminate\Database\Eloquent\Collection::getKey does not exist. 
@@ -83,7 +90,9 @@ class WebChat extends Component
     }
 
     public function updatedCurrentConversionId($value){
+        $this->emit('scrollToEnd');
         $this->isCreating = false;
+        $this->isMobileShowContact = false;
         // loading empty conversion
         if(!isset($this->conversions[$value])){
             $wechatMessage = new WechatMessage([

@@ -22,6 +22,9 @@ class WechatBotContact extends Component
     public int $wechatBotId;
 
     public $tags;
+
+    public string $defaultAvatar = WechatContact::DEFAULT_AVATAR;
+    
     public function render()
     {
         $models = $this->rows;

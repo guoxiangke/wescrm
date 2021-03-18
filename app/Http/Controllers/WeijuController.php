@@ -160,7 +160,8 @@ class WeijuController extends Controller
                     $v1 = $msg['@attributes']['encryptusername'];
                     $v2 = $msg['@attributes']['ticket'];
                     $wechatBot->friendAgree($v1, $v2, $msg['@attributes']['fromusername']);
-                    $wechatMessage['content'] = $msg;
+                    $text = "{$msg['@attributes']['fromnickname']}({$msg['@attributes']['fromusername']})向您发送好友请求\r\n请求信息：{$msg['@attributes']['content']}";
+                    $wechatMessage['content'] = ['content' => $text];
                     Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
                     break;
                 default:
@@ -187,17 +188,13 @@ class WeijuController extends Controller
                     $username = $msg['sysmsgtemplate']['content_template']['link_list']['link'][0]['memberlist']['member']['nickname'];
                     
                     $tempMembers = $msg['sysmsgtemplate']['content_template']['link_list']['link'][1]['memberlist']['member'];
-                    if(count($tempMembers)>2){
-                        $names = collect($tempMembers)->pluck('nickname')->join('、','和');
-                    }else{ // 只有3个人的群
-                        $names = $tempMembers['nickname'];
-                    }
+                    $names = $tempMembers['nickname']??$names = collect($tempMembers)->pluck('nickname')->join('、');;
                     $template = $msg['sysmsgtemplate']['content_template']['template'];
                     
-                    $replaced = preg_replace_array('/\$username\$/', [$username], $template);
-                    $replaced = preg_replace_array('/\$names\$/', [$names], $replaced);
-                    $replaced = preg_replace_array('/\$remark\$/', [$names], $replaced);
-                    $replaced = preg_replace_array('/\$others\$/', [$names], $replaced);
+                    $replaced = preg_replace_array('/"\$username\$"/', [$username], $template);
+                    $replaced = preg_replace_array('/"\$names\$"/', [$names], $replaced);
+                    $replaced = preg_replace_array('/"\$remark\$"/', [$names], $replaced);
+                    $replaced = preg_replace_array('/"\$others\$"/', [$names], $replaced);
                     $wechatMessage['content'] = ['content' => $replaced];
                     // TODO 保存群到通讯录，下次init后，应该才可以获取到群info？
                     $wechatBot->wechat->saveGroup($wechatMessage["fromUser"]); // "fromUser" = "sendUser":"19341138594@chatroom"
@@ -209,8 +206,10 @@ class WeijuController extends Controller
             }
         }else{ // 简单消息
             Log::debug(__METHOD__, ['简单消息', 'or待处理', $request['message']]);
-            // "msgType":10000, "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
-            // "msgType":10000, "content":"天空蔚蓝开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证请求，对方验证通过后，才能聊天。<a href=\"weixin://findfriend/verifycontact\">发送朋友验证</a>
+            // "msgType":10000, 
+                // "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
+                // "content":"你被\"天空蔚蓝\"移出群聊"
+                // "content":"天空蔚蓝开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证请求，对方验证通过后，才能聊天。<a href=\"weixin://findfriend/verifycontact\">发送朋友验证</a>
         }
 
         // 收到公众号消息，没有 from_contact_id
