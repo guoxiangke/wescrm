@@ -153,7 +153,12 @@ class WebChat extends Component
             if($messages->count()){
                 $this->maxMessageId = $messages->first()->id;
                 // $messages = $this->wechatMessages->merge($messages);
-                $messages->each(fn($message) => array_unshift($this->wechatMessages[$message->conversation], $message->toArray()));
+                
+                $messages->each(function($message) {
+                    $old = $this->wechatMessages[$message->conversation]??[];
+                    array_unshift($old, $message->toArray());
+                    $this->wechatMessages[$message->conversation] = $old;
+                });
 
                 // 新增加的 contacts 好友信息
                 $conversationIds = $messages->groupBy('conversation')->keys();
