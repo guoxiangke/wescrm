@@ -168,7 +168,7 @@ class WebChat extends Component
                     Log::error(__METHOD__, ['新消息中，包含的 addMoreIds', count($this->contacts), $addMoreIds->toArray()]);
                     if($addMoreIds->count()){
                         $contacts = WechatContact::whereIn('id', $addMoreIds->all())->get();
-                        $contacts->each(fn($contact) => array_unshift($this->contacts[$contact->id], $contact->toArray()));
+                        $contacts->each(fn($contact) => $this->contacts[$contact->id] = $contact->toArray());
 
                         Log::error(__METHOD__, ['新消息中 新增的 contacts', count($this->contacts), $contacts->toArray()]);
                     }
