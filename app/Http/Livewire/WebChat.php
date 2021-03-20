@@ -35,7 +35,6 @@ class WebChat extends Component
     public WechatContent $editing;
     public string $content = '';
     public WechatBot $wechatBot;
-    public $wechatBotContacts;
 
     public function rules() { 
         return [
@@ -101,13 +100,13 @@ class WebChat extends Component
 
     public $conversationFirstId = 0;
     public function updatedCurrentConversationId($contactId){
+        // dd($this->contacts);
         $this->emit('scrollToEnd');
         $this->isCreating = false;
         $this->isMobileShowContact = false;
 
         // loading empty conversation
         $conversations = $this->wechatMessages;//->groupBy('contact.id')->toArray();
-        // dd($conversations);
         if(!isset($conversations[$contactId])){
             $wechatMessage = new WechatMessage([
                 'msgType'=>1,
@@ -116,17 +115,13 @@ class WebChat extends Component
                 'from_contact_id'=>$contactId,
                 'seat_user_id'=>null,
                 'content' => ['content'=>'请在底部输入内容开始会话'],
-                'updated_at' => now('Asia/Hong_Kong'),
+                'updated_at' => now('Asia/Hong_Kong'), // ？？for 切换新的会话
             ]);
-            // $wechatMessage->load(['contact', 'from', 'seat']);
-            // $this->conversations[] = $wechatMessage;
+            $this->wechatMessages[$contactId][] = $wechatMessage;
         }else{
-            $this->conversationFirstId = last($conversations[$contactId])['id'];
+            $this->conversationFirstId = last($conversations[$contactId])['id']??0; // ？？for 切换新的会话
         }
-        // $contactId = $conversations[$value][0]['conversation'];
-        // info([$this->conversationFirstId, $contactId, $value]);
-        // dd($conversations[$value]);
-        // dd( $conversations[$value][0], $contactId , $this->contacts);
+        
         if(isset($this->contacts[$contactId])){
             $this->isRoom = Str::endsWith($this->contacts[$contactId]['userName'], '@chatroom')?true:false;
         }else{
@@ -162,13 +157,6 @@ class WebChat extends Component
                 ->get();
         
             if($messages->count()){
-                $this->maxMessageId = $messages->first()->id;
-                // $messages = $this->wechatMessages->merge($messages);
-                $messages->each(function($message) {
-                    $old = $this->wechatMessages[$message->conversation]??[];
-                    array_unshift($old, $message->toArray());
-                    $this->wechatMessages[$message->conversation] = $old;
-                });
 
                 // 新增加的 contacts 好友信息
                 $conversationIds = $messages->groupBy('conversation')->keys();
@@ -186,12 +174,19 @@ class WebChat extends Component
                     }
                 }
                 
-                $this->emit('scrollToEnd');
-                // info(['getConversations1=', $this->maxMessageId, $messages->count(), $this->wechatMessages->count()]);
+
+                $this->maxMessageId = $messages->first()->id;
+                // $messages = $this->wechatMessages->merge($messages);
+                $messages->each(function($message) {
+                    $old = $this->wechatMessages[$message->conversation]??[];
+                    array_unshift($old, $message->toArray());
+                    $this->wechatMessages[$message->conversation] = $old;
+                    if($this->currentConversationId == $message->conversation){
+                        $this->emit('scrollToEnd');
+                    }
+                });
             }
-            // Log::debug(__METHOD__, ['refresh in render', 'keys', array_keys($this->wechatMessages)]);
-            // Log::debug(__METHOD__, ['refresh-render', 'maxMessageId', $this->maxMessageId, array_keys($this->wechatMessages)]);
-            // Log::debug(__METHOD__, ['refresh-render', 'maxMessageId', $this->maxMessageId, array_keys($this->wechatMessages)]);
+            
             return $this->wechatMessages;//$wechatMessages->groupBy('conversation')->toArray();//->groupBy('conversation')->toArray();
         }else{
             //初始化
@@ -223,7 +218,7 @@ class WebChat extends Component
         return $this->wechatMessages;
     }
 
-    public function load()
+    public function loadMore()
     {
         $messages = WechatMessage::where('conversation', $this->currentConversationId)
             ->where('id', '<', $this->conversationFirstId)
@@ -245,12 +240,20 @@ class WebChat extends Component
         }
     }
 
+    public $searchIds;
     public function updatedSearch($value){
-        $this->wechatBotContacts = WechatBotContact::query()->with('contact')
+        $addMoreIds = WechatBotContact::query()->with('contact')
             ->where('wechat_bot_id', $this->wechatBot->id)->where('type','>',0)
             ->when($this->search, fn($query, $search) => $query->where('remark', 'like', '%' . $search . '%'))
             ->take(10)
-            ->get();
+            ->get()
+            ->keyBy('wechat_contact_id');
+
+        $contacts = WechatContact::whereIn('id', $addMoreIds->keys())->get()->keyBy('id')->toArray();
+        
+        $this->contacts = $this->contacts + $contacts;
+        
+        $this->searchIds = $addMoreIds->pluck('remark','wechat_contact_id')->toArray();
     }
 
     public function render()
@@ -258,7 +261,7 @@ class WebChat extends Component
         $conversations = $this->getConversations();
         return view('livewire.webchat',[
             'conversations'=>$conversations,
-            // 'contacts' => $this->contacts
+            'contacts' => $this->contacts
             ])->layout('layouts.webchat');
     }
 }

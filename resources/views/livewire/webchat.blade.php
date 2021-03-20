@@ -61,15 +61,18 @@
             <ul class="messaging-create-channel__user-results absolute top-9 mt-3 left-10 ml-4">
               <div>
                 @if($search)
-                @forelse ($wechatBotContacts as $wechatBotContact)
+                @forelse ($searchIds as $contactId=>$remark)
+                @php
+                    $defaultAvatar = "https://ui-avatars.com/api/?name={$remark}&color=7F9CF5&background=EBF4FF";
+                @endphp
                   <div class="messaging-create-channel__user-result"
-                    wire:click="$set('currentConversationId', {{$wechatBotContact->contact->id}})">
+                    wire:click="$set('currentConversationId', {{$contactId}})">
                     <li class="messaging-create-channel__user-result">
                       <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
-                        <img data-testid="avatar-imgs" src="{{ $wechatBotContact->contact->smallHead?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+                        <img data-testid="avatar-imgs" src="{{ $contacts[$contactId]['smallHead']?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
                       </div>
                       <div class="messaging-create-channel__user-result__details">
-                        <span>{{$wechatBotContact->remark}}</span>
+                        <span>{{$remark}}</span>
                       </div>
                     </li>
                   </div>
@@ -84,6 +87,10 @@
       </div>
       <div class="messaging__channel-list">
         @foreach ($conversations as $contactId => $conversation)
+        @php
+            $time = $conversation[0]['updated_at']??now();
+            $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
+        @endphp
         <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
           <div class="channel-preview__avatars">
             <img data-testid="avatar-img" src="{{$contacts[$contactId]['smallHead']?:$defaultAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
@@ -91,7 +98,7 @@
           <div class="channel-preview__content-wrapper">
             <div class="channel-preview__content-top">
               <p class="channel-preview__content-name">{{$contacts[$contactId]['nickName']?:'新加入群'.$contacts[$contactId]['id'] }}</p>
-              <p class="channel-preview__content-time">{{ Illuminate\Support\Carbon::parse($conversation[0]['updated_at'])->diffForHumans() }}</p>
+              <p class="channel-preview__content-time">{{ $updatedAt }}</p>
             </div>
             <p class="channel-preview__content-message">{{ $conversation[0]['content']['content']??'有消息🆕' }}</p>
           </div>
@@ -153,9 +160,9 @@
               </svg>
             </div>
             <div class="messaging__channel-header__avatars"> 
-              <img data-testid="avatar-img" src="{{ $contacts[$conversations[$currentConversationId][0]['conversation']]['smallHead']??$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+              <img data-testid="avatar-img" src="{{ $contacts[$currentConversationId]['smallHead']??$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
             </div>
-            <div class="channel-header__name">{{ $contacts[$conversations[$currentConversationId][0]['conversation']]['nickName']??'暂无群名'.$conversations[$currentConversationId][0]['contact']['id'] }}</div>
+            <div class="channel-header__name">{{ $contacts[$currentConversationId]['nickName']??'暂无群名'.$contacts[$currentConversationId]['id'] }}</div>
             <div class="messaging__channel-header__right">
               <div class="messaging__typing-indicator">
                 <div>
@@ -167,18 +174,24 @@
             <div class="str-chat__reverse-infinite-scroll" data-testid="reverse-infinite-scroll">
               <ul class="str-chat__ul">
                 @foreach (array_reverse($conversations[$currentConversationId]) as $message)
+                  @php
+                      $time = $message['updated_at']??now();
+                      $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
+                  @endphp
                   @if ($loop->first)
                     <li class="">
                       <div class="str-chat__date-separator">
                         <hr class="str-chat__date-separator-line">
-                        <div class="str-chat__date-separator-date">{{ Illuminate\Support\Carbon::parse($message['updated_at'])->diffForHumans() }}</div>
+                        <div class="str-chat__date-separator-date">{{ $updatedAt }}</div>
                       </div>
                     </li>
+                    @if($conversationFirstId)
                     <div class=" str-chat__list-notifications">
                       <button 
-                      wire:click="load"
+                      wire:click="loadMore"
                       data-testid="message-notification" class="str-chat__message-notification">Load More!</button>
                     </div>
+                    @endif
                   @endif
                 
                 @php
@@ -271,7 +284,7 @@
                       
                       <div class="str-chat__message-data str-chat__message-simple-data">
                         <span class="str-chat__message-simple-name">{{ $name }}</span>
-                        <time class="str-chat__message-simple-timestamp" datetime="" title="">{{ str_replace('T', ' ', substr($message['updated_at'],0,16)) }}</time>
+                        <time class="str-chat__message-simple-timestamp" datetime="" title="">{{ str_replace('T', ' ', substr($message['updated_at']??now(),0,16)) }}</time>
                       </div>
                     </div>
                   </div>

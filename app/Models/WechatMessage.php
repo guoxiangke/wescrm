@@ -14,8 +14,8 @@ class WechatMessage extends Model
 {
     use HasFactory;
     // 'updated_at', 更新时间，设置为 返回消息中的时间
-    // TODO scope 默认 orderBy updated_at desc
-    protected $guarded = ['id', 'created_at', 'deleted_at'];
+    // TODO scope 默认 orderBy  desc
+    protected $guarded = ['id', 'created_at', 'deleted_at', 'updated_at'];
 
 	use SoftDeletes;
     
