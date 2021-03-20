@@ -1,4 +1,4 @@
-<div id="root" wire:poll.7000ms>
+<div id="root" wire:poll.15000ms>
   <div id="mobile-channel-list" 
     class="{{$isMobileShowContact?'show':''}}">
     <div class="str-chat str-chat-channel-list messaging {{ $isDarkUi?"dark":"light"  }}">
@@ -6,11 +6,11 @@
         <div class="flex justify-between p-4">
           <div class="flex">
             <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" title="holy-dew-9" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
-              <img data-testid="avatar-img" src="{{$seatUserAvatar}}" alt="{{$seatUserName}}" class="str-chat__avatar-image str-chat__avatar-image--loaded" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+              <img data-testid="avatar-img" src="{{$user->profile_photo_url}}" alt="{{$user->name}}" class="str-chat__avatar-image str-chat__avatar-image--loaded" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
             </div>
             <div>
-              <div class="messaging__channel-list__header__name">{{$seatUserName}}</div>
-              <div class="messaging__channel-list__header__name-2">{{$currentTeamName}}</div>
+              <div class="messaging__channel-list__header__name">{{$user->name}}</div>
+              <div class="messaging__channel-list__header__name-2">{{$user->currentTeam->name}}</div>
             </div>
             
           </div>
@@ -63,7 +63,7 @@
                 @if($search)
                 @forelse ($wechatBotContacts as $wechatBotContact)
                   <div class="messaging-create-channel__user-result"
-                    wire:click="$set('currentConversionId', {{$wechatBotContact->contact->id}})">
+                    wire:click="$set('currentConversationId', {{$wechatBotContact->contact->id}})">
                     <li class="messaging-create-channel__user-result">
                       <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
                         <img data-testid="avatar-imgs" src="{{ $wechatBotContact->contact->smallHead?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
@@ -83,17 +83,17 @@
         </div>
       </div>
       <div class="messaging__channel-list">
-        @foreach ($conversions as $contactId => $conversion)
-        <div wire:click="$set('currentConversionId', {{$contactId}})" id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversionId===$contactId?'selected':'' }} ">
+        @foreach ($conversations as $contactId => $conversation)
+        <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
           <div class="channel-preview__avatars">
-            <img data-testid="avatar-img" src="{{$conversion[0]['contact']['smallHead']?:$defaultAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+            <img data-testid="avatar-img" src="{{$contacts[$contactId]['smallHead']?:$defaultAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
           </div>
           <div class="channel-preview__content-wrapper">
             <div class="channel-preview__content-top">
-              <p class="channel-preview__content-name">{{$conversion[0]['contact']['nickName']?:'新加入群'.$conversion[0]['contact']['id'] }}</p>
-              <p class="channel-preview__content-time">{{ Illuminate\Support\Carbon::parse($conversion[0]['updated_at'])->diffForHumans() }}</p>
+              <p class="channel-preview__content-name">{{$contacts[$contactId]['nickName']?:'新加入群'.$contacts[$contactId]['id'] }}</p>
+              <p class="channel-preview__content-time">{{ Illuminate\Support\Carbon::parse($conversation[0]['updated_at'])->diffForHumans() }}</p>
             </div>
-            <p class="channel-preview__content-message">{{ $conversion[0]['content']['content']??'有消息🆕' }}</p>
+            <p class="channel-preview__content-message">{{ $conversation[0]['content']['content']??'有消息🆕' }}</p>
           </div>
         </div>
         @endforeach
@@ -109,8 +109,7 @@
             <div class="messaging-create-channel__left">
               <div class="messaging-create-channel__left-text">To:</div>
               <div class="users-input-container">
-                <div class="messaging-create-channel__users" 
-                  style="display: none">
+                <div class="hidden messaging-create-channel__users">
                   <div class="messaging-create-channel__user">
                     <div class="messaging-create-channel__user-text">aged-salad-0</div>
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -142,7 +141,7 @@
             </ul>
           </main>
         </div>
-      @else 
+      @else
         <div class="str-chat__main-panel">
           <div class="messaging__channel-header">
             <div id="mobile-nav-icon" 
@@ -154,9 +153,9 @@
               </svg>
             </div>
             <div class="messaging__channel-header__avatars"> 
-              <img data-testid="avatar-img" src="{{ $conversions[$currentConversionId][0]['contact']['smallHead']?:$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+              <img data-testid="avatar-img" src="{{ $contacts[$conversations[$currentConversationId][0]['conversation']]['smallHead']??$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
             </div>
-            <div class="channel-header__name">{{ $conversions[$currentConversionId][0]['contact']['nickName']?:'暂无群名'.$conversions[$currentConversionId][0]['contact']['id'] }}</div>
+            <div class="channel-header__name">{{ $contacts[$conversations[$currentConversationId][0]['conversation']]['nickName']??'暂无群名'.$conversations[$currentConversationId][0]['contact']['id'] }}</div>
             <div class="messaging__channel-header__right">
               <div class="messaging__typing-indicator">
                 <div>
@@ -167,43 +166,45 @@
           <div class="str-chat__list" x-ref="foo">
             <div class="str-chat__reverse-infinite-scroll" data-testid="reverse-infinite-scroll">
               <ul class="str-chat__ul">
-                <li class="hidden">
-                  <div class="str-chat__date-separator">
-                    <hr class="str-chat__date-separator-line">
-                    <div class="str-chat__date-separator-date">Today at 5:13 AM</div>
+                @foreach (array_reverse($conversations[$currentConversationId]) as $message)
+                  @if ($loop->first)
+                  <li class="">
+                    <div class="str-chat__date-separator">
+                      <hr class="str-chat__date-separator-line">
+                      <div class="str-chat__date-separator-date">{{ Illuminate\Support\Carbon::parse($message['updated_at'])->diffForHumans() }}</div>
+                    </div>
+                  </li>
+                  <div class=" str-chat__list-notifications">
+                    <button data-testid="message-notification" class="str-chat__message-notification">Load More!</button>
                   </div>
-                </li>
-
-                @foreach (array_reverse($conversions[$currentConversionId]) as $conversion)
-                <li class="str-chat__li str-chat__li--single" id="conversion-{{$conversion['id']}}">
+                  @endif
+                <li class="str-chat__li str-chat__li--single" data-id="conversation-{{$message['id']??'0'}}">
                   <div 
                     class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text 
-                    {{ $conversion['seat_user_id'] ?'str-chat__message--me str-chat__message-simple--me':'' }} 
+                    {{ $message['seat_user_id'] ?'str-chat__message--me str-chat__message-simple--me':'' }} 
                     ">
                     
-                    @if($conversion['seat_user_id'])
-                      <span style="display: block" class="str-chat__message-simple-status" data-testid="message-status-received">
+                    @if($message['seat_user_id'])
+                      <span class="hidden str-chat__message-simple-status" data-testid="message-status-received">
                         <div class="str-chat__tooltip">Delivered</div>
                         <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.72 6.633a.955.955 0 1 0-1.352-1.352L6.986 8.663 5.633 7.31A.956.956 0 1 0 4.28 8.663l2.029 2.028a.956.956 0 0 0 1.353 0l4.058-4.058z" fill="#006CFF" fill-rule="evenodd"></path>
                         </svg>
                       </span>
 
-                      <div style="display: block" class="str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" 
-                        style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
+                      <div class="str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" style="display:block ;width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
                         <img data-testid="avatar-img" 
-                          src="{{$conversion['seat']['profile_photo_url']}}"
+                          src="{{$message['seat']['profile_photo_url']??$defaultAvatar}}"
                           alt="s"
                           class="str-chat__avatar-image str-chat__avatar-image--loaded" 
                           style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
                       </div>
                     @else
-                    <div style="display: block" class="str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;
-                    {{ $isRoom?'':'display:none' }}">
+                    <div class="block str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
                       <img data-testid="avatar-img" 
-                        src="{{ $conversion['from'] 
-                          ? ($conversion['from']['smallHead']?:$defaultAvatar) 
-                          : ($conversion['contact']['smallHead']?:$defaultAvatar) }}"
+                        src="{{ $message['from_contact_id'] 
+                          ? ($contacts[$message['from_contact_id']]['smallHead']?:$defaultAvatar) 
+                          : ($contacts[$message['conversation']]['smallHead']?:$defaultAvatar) }}"
                         alt="s"
                         class="str-chat__avatar-image str-chat__avatar-image--loaded" 
                         style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
@@ -216,7 +217,7 @@
                     <div data-testid="message-inner" class="str-chat__message-inner">
                       <div class="str-chat__message-text">
                         <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
-                          <p>{{$conversion['content']['content']??'暂未处理消息'}}</p>
+                          <p>{{$message['content']['content']??'暂未处理消息'}}</p>
                         </div>
                         <div data-testid="message-options" class="str-chat__message-simple__actions">
                           <div data-testid="message-reaction-action" class="str-chat__message-simple__actions__action str-chat__message-simple__actions__action--reactions">
@@ -255,8 +256,16 @@
                       </div>
                       
                       <div class="str-chat__message-data str-chat__message-simple-data">
-                        <span class="str-chat__message-simple-name {{ $isRoom?'':'hidden'}}"">{{ $conversion['from'] ? $conversion['from']['nickName'] : ($conversion['seat_user_id']?$conversion['seat']['name']:$conversion['contact']['nickName']) }}</span>
-                        <time class="str-chat__message-simple-timestamp" datetime="Mon Mar 15 2021 05:13:11 GMT+0800 (China Standard Time)" title="Mon Mar 15 2021 05:13:11 GMT+0800 (China Standard Time)">{{ str_replace('T', ' ', substr($conversion['updated_at'],0,16)) }}</time>
+                        <span class="str-chat__message-simple-name">{{
+                          // 群成员名字/本系统发送：座席名字/主动发送：bot自己的名字
+                          $message['from_contact_id'] 
+                            ? $contacts[$message['from_contact_id']]['nickName']
+                            : ($message['seat_user_id']
+                              ? $seatUsers[$message['seat_user_id']]['name']
+                              : $contacts[$message['conversation']]['nickName']
+                              )
+                          }}</span>
+                        <time class="str-chat__message-simple-timestamp" datetime="" title="">{{ str_replace('T', ' ', substr($message['updated_at'],0,16)) }}</time>
                       </div>
                     </div>
                   </div>
@@ -267,10 +276,6 @@
               <div>
               </div>
             </div>
-          </div>
-
-          <div class="str-chat__list-notifications">
-            <button data-testid="message-notification" class="str-chat__message-notification">New Messages!</button>
           </div>
           
           <div class="str-chat__messaging-input">
@@ -307,12 +312,11 @@
                   </div>
                   <div class="messaging-input__input-wrapper">
                       
-                    <div 
-                      style="display: none" class="rfu-image-previewer"><div class="rfu-image-previewer__image rfu-image-previewer__image--loaded"><div class="rfu-thumbnail__wrapper" style="width: 100px; height: 100px;"><div class="rfu-thumbnail__overlay"><div class="rfu-icon-button" role="button"><div><svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path d="M465 5c5.53 0 10 4.47 10 10s-4.47 10-10 10-10-4.47-10-10 4.47-10 10-10zm3.59 5L465 13.59 461.41 10 460 11.41l3.59 3.59-3.59 3.59 1.41 1.41 3.59-3.59 3.59 3.59 1.41-1.41-3.59-3.59 3.59-3.59-1.41-1.41z" id="b"></path><filter x="-30%" y="-30%" width="160%" height="160%" filterUnits="objectBoundingBox" id="a"><feOffset in="SourceAlpha" result="shadowOffsetOuter1"></feOffset><feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0" in="shadowBlurOuter1"></feColorMatrix></filter></defs><g transform="translate(-451 -1)" fill-rule="nonzero" fill="none"><use fill="#000" filter="url(#a)" xlink:href="#b"></use><use fill="#FFF" fill-rule="evenodd" xlink:href="#b"></use></g></svg></div></div></div><img src="{{$defaultAvatar}}" class="rfu-thumbnail__image" alt=""></div></div><div class="rfu-image-upload-button"><label><input type="file" class="rfu-image-input" accept="image/*" multiple=""><div role="button" class="rfu-thumbnail-placeholder"><svg width="14" height="15" viewBox="0 0 14 15" xmlns="http://www.w3.org/2000/svg"><path d="M14 8.998H8v6H6v-6H0v-2h6v-6h2v6h6z" fill="#A0B2B8" fill-rule="nonzero"></path></svg></div></label></div></div>
+                    <div class="hidden rfu-image-previewer"><div class="rfu-image-previewer__image rfu-image-previewer__image--loaded"><div class="rfu-thumbnail__wrapper" style="width: 100px; height: 100px;"><div class="rfu-thumbnail__overlay"><div class="rfu-icon-button" role="button"><div><svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path d="M465 5c5.53 0 10 4.47 10 10s-4.47 10-10 10-10-4.47-10-10 4.47-10 10-10zm3.59 5L465 13.59 461.41 10 460 11.41l3.59 3.59-3.59 3.59 1.41 1.41 3.59-3.59 3.59 3.59 1.41-1.41-3.59-3.59 3.59-3.59-1.41-1.41z" id="b"></path><filter x="-30%" y="-30%" width="160%" height="160%" filterUnits="objectBoundingBox" id="a"><feOffset in="SourceAlpha" result="shadowOffsetOuter1"></feOffset><feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0" in="shadowBlurOuter1"></feColorMatrix></filter></defs><g transform="translate(-451 -1)" fill-rule="nonzero" fill="none"><use fill="#000" filter="url(#a)" xlink:href="#b"></use><use fill="#FFF" fill-rule="evenodd" xlink:href="#b"></use></g></svg></div></div></div><img src="{{$defaultAvatar}}" class="rfu-thumbnail__image" alt=""></div></div><div class="rfu-image-upload-button"><label><input type="file" class="rfu-image-input" accept="image/*" multiple=""><div role="button" class="rfu-thumbnail-placeholder"><svg width="14" height="15" viewBox="0 0 14 15" xmlns="http://www.w3.org/2000/svg"><path d="M14 8.998H8v6H6v-6H0v-2h6v-6h2v6h6z" fill="#A0B2B8" fill-rule="nonzero"></path></svg></div></label></div></div>
 
                       <div class="rta str-chat__textarea">
                         <textarea
-                          wire:model="content" 
+                          wire:model.debounce.3000ms="content" 
                           wire:keydown.enter.prevent="send"
                           rows="1" placeholder="Send a message" class="rta__textarea str-chat__textarea__textarea" spellcheck="false" style="height: 38px !important;"></textarea>
                       </div>
@@ -449,6 +453,7 @@
 <script>
   document.addEventListener('livewire:load', function () {
     Livewire.on('scrollToEnd', () => {
+        console.log('scrollToEnd');
         let element = document.querySelector(".str-chat__list");
         element.scrollTop = element.scrollHeight;
     })
