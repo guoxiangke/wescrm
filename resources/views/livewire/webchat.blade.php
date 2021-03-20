@@ -175,7 +175,9 @@
                       </div>
                     </li>
                     <div class=" str-chat__list-notifications">
-                      <button data-testid="message-notification" class="str-chat__message-notification">Load More!</button>
+                      <button 
+                      wire:click="load"
+                      data-testid="message-notification" class="str-chat__message-notification">Load More!</button>
                     </div>
                   @endif
                 
@@ -198,7 +200,6 @@
                     class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text 
                     {{ $message['seat_user_id'] ?'str-chat__message--me str-chat__message-simple--me':'' }} 
                     ">
-                    
                     @if($message['seat_user_id'])
                       <span class="hidden str-chat__message-simple-status" data-testid="message-status-received">
                         <div class="str-chat__tooltip">Delivered</div>
