@@ -168,16 +168,31 @@
               <ul class="str-chat__ul">
                 @foreach (array_reverse($conversations[$currentConversationId]) as $message)
                   @if ($loop->first)
-                  <li class="">
-                    <div class="str-chat__date-separator">
-                      <hr class="str-chat__date-separator-line">
-                      <div class="str-chat__date-separator-date">{{ Illuminate\Support\Carbon::parse($message['updated_at'])->diffForHumans() }}</div>
+                    <li class="">
+                      <div class="str-chat__date-separator">
+                        <hr class="str-chat__date-separator-line">
+                        <div class="str-chat__date-separator-date">{{ Illuminate\Support\Carbon::parse($message['updated_at'])->diffForHumans() }}</div>
+                      </div>
+                    </li>
+                    <div class=" str-chat__list-notifications">
+                      <button data-testid="message-notification" class="str-chat__message-notification">Load More!</button>
                     </div>
-                  </li>
-                  <div class=" str-chat__list-notifications">
-                    <button data-testid="message-notification" class="str-chat__message-notification">Load More!</button>
-                  </div>
                   @endif
+                
+                @php
+                  // 群成员名字/本系统发送：座席名字/主动发送：bot自己的名字
+                  $name = $message['from_contact_id'] 
+                      ? $contacts[$message['from_contact_id']]['nickName']?$contacts[$message['from_contact_id']]['nickName']:($message['from_contact_id']%100)
+                      : ($message['seat_user_id']
+                        ? $seatUsers[$message['seat_user_id']]['name']
+                        : $contacts[$message['conversation']]['nickName']);
+                        
+                  $defaultAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
+                  $avatar = $message['from_contact_id'] 
+                          ? ($contacts[$message['from_contact_id']]['smallHead']?:$defaultAvatar) 
+                          : ($contacts[$message['conversation']]['smallHead']?:$defaultAvatar);
+                @endphp
+
                 <li class="str-chat__li str-chat__li--single" data-id="conversation-{{$message['id']??'0'}}">
                   <div 
                     class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text 
@@ -202,10 +217,8 @@
                     @else
                     <div class="block str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
                       <img data-testid="avatar-img" 
-                        src="{{ $message['from_contact_id'] 
-                          ? ($contacts[$message['from_contact_id']]['smallHead']?:$defaultAvatar) 
-                          : ($contacts[$message['conversation']]['smallHead']?:$defaultAvatar) }}"
-                        alt="s"
+                        src="{{ $avatar }}"
+                        alt="{{ $name }}"
                         class="str-chat__avatar-image str-chat__avatar-image--loaded" 
                         style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
                     </div>
@@ -256,15 +269,7 @@
                       </div>
                       
                       <div class="str-chat__message-data str-chat__message-simple-data">
-                        <span class="str-chat__message-simple-name">{{
-                          // 群成员名字/本系统发送：座席名字/主动发送：bot自己的名字
-                          $message['from_contact_id'] 
-                            ? $contacts[$message['from_contact_id']]['nickName']
-                            : ($message['seat_user_id']
-                              ? $seatUsers[$message['seat_user_id']]['name']
-                              : $contacts[$message['conversation']]['nickName']
-                              )
-                          }}</span>
+                        <span class="str-chat__message-simple-name">{{ $name }}</span>
                         <time class="str-chat__message-simple-timestamp" datetime="" title="">{{ str_replace('T', ' ', substr($message['updated_at'],0,16)) }}</time>
                       </div>
                     </div>

@@ -37,8 +37,6 @@ class WebChat extends Component
     public WechatBot $wechatBot;
     public $wechatBotContacts;
 
-    public string $defaultAvatar = WechatContact::DEFAULT_AVATAR; // fallback
-
     public function rules() { 
         return [
             'editing.name' => 'required|min:3',
