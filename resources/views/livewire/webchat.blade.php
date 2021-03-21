@@ -90,6 +90,8 @@
         @php
             $time = $conversation[0]['updated_at']??now();
             $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
+            $name = $contacts[$contactId]['nickName']?:'G'.$contacts[$contactId]['id'];
+            $defaultAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
         @endphp
         <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
           <div class="channel-preview__avatars">
@@ -97,10 +99,10 @@
           </div>
           <div class="channel-preview__content-wrapper">
             <div class="channel-preview__content-top">
-              <p class="channel-preview__content-name">{{$contacts[$contactId]['nickName']?:'新加入群'.$contacts[$contactId]['id'] }}</p>
+              <p class="channel-preview__content-name">{{ $name }}</p>
               <p class="channel-preview__content-time">{{ $updatedAt }}</p>
             </div>
-            <p class="channel-preview__content-message">{{ $conversation[0]['content']['content']??'有消息🆕' }}</p>
+            <p class="channel-preview__content-message">{{ $conversation[0]['content']['content']??'新消息🆕' }}</p>
           </div>
         </div>
         @endforeach

@@ -198,8 +198,9 @@ class WebChat extends Component
             $this->maxMessageId = $messages->first()->id;
 
             // TODO by team 座席用户信息
-            $seatUserIds = $messages->groupBy('seat_user_id')->keys()->filter();
-            $this->seatUsers = User::whereIn('id', $seatUserIds)->get()->keyBy('id')->toArray();
+            // $seatUserIds = $messages->groupBy('seat_user_id')->keys()->filter();
+            // $this->seatUsers = User::whereIn('id', $seatUserIds)->get()->keyBy('id')->toArray();
+            $this->seatUsers = $this->user->currentTeam->allUsers()->keyBy('id')->toArray();
                 
             // contacts 好友信息
             $conversationIds = $messages->groupBy('conversation')->keys();
