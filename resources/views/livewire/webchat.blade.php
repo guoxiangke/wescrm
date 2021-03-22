@@ -12,7 +12,6 @@
               <div class="messaging__channel-list__header__name">{{$user->name}}</div>
               <div class="messaging__channel-list__header__name-2">{{$user->currentTeam->name}}</div>
             </div>
-            
           </div>
 
           <div class="flex">
@@ -46,14 +45,12 @@
           <header>
             <div class="messaging-create-channel__left-0">
               <div class="users-input-container relative">
-                <form class="">
                   <input placeholder="Start typing for suggestions" type="text" class="messaging-create-channel__input
                   border-gray-300 border-indigo-200 ring ring-indigo-100 ring-opacity-40 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full" value=""
                     wire:model.debounce.1000ms="search" >
-                    <button type="submit" class="absolute top-0 mt-3 right-4 ml-4">
+                    <div class="absolute top-0 mt-3 right-4 ml-4">
                       <x-icon.search />
-                  </button>
-                </form>
+                    </div>
               </div>
             </div>
           </header>
@@ -187,7 +184,7 @@
                         <div class="str-chat__date-separator-date">{{ $updatedAt }}</div>
                       </div>
                     </li>
-                    @if($conversationFirstId)
+                    @if($conversationFirstId && !isset($hideLoadMore[$currentConversationId]))
                     <div class=" str-chat__list-notifications">
                       <button 
                       wire:click="loadMore"
