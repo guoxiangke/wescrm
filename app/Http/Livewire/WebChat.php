@@ -16,6 +16,8 @@ use Illuminate\Support\Str;
 class WebChat extends Component
 {
 
+    public string $defaultAvatar = WechatContact::DEFAULT_AVATAR; // fallback
+    
     public bool $isThread = false;
     public bool $isMobileShowContact = false;
 
@@ -95,6 +97,7 @@ class WebChat extends Component
     }
 
     public $conversationFirstId = 0;
+    public $loadMore = [];
     public function updatedCurrentConversationId($contactId){
         $this->hasNextPage =  true;
         // dd($this->contacts);
@@ -105,9 +108,10 @@ class WebChat extends Component
         // loading empty conversation
         $conversations = $this->wechatMessages;//->groupBy('contact.id')->toArray();
         if(!isset($conversations[$contactId])){
+            $this->loadMore[$contactId] = false;
             $wechatMessage = new WechatMessage([
                 'msgType'=>1,
-                'wechat_bot_id'=>1,
+                'wechat_bot_id'=>$this->wechatBot->id,
                 'conversation'=>$contactId,
                 'from_contact_id'=>$contactId,
                 'seat_user_id'=>null,
@@ -133,20 +137,13 @@ class WebChat extends Component
         // $this->loadMore();
     }
 
- 
-    public $search = '';
-
-    public function resetFilters()
-    {
-        $this->reset('search');
-    }
-
 
     public $hideLoadMore = []; // by conversation
     public function loadMore()
     {
         $loadCount = 30;
         $messages = WechatMessage::where('conversation', $this->currentConversationId)
+            ->where('wechat_bot_id', $this->wechatBot->id)
             ->where('id', '<', $this->conversationFirstId)
             ->take($loadCount)
             ->orderBy('id', 'desc')
@@ -173,10 +170,19 @@ class WebChat extends Component
     }
 
     public $searchIds;
-    public function updatedSearch($value){
+    public $search = '';
+
+    public function resetFilters()
+    {
+        $this->reset('search');
+    }
+
+    public function updatedSearch(){
+        $value = trim($this->search);
         $addMoreIds = WechatBotContact::query()->with('contact')
-            ->where('wechat_bot_id', $this->wechatBot->id)->where('type','>',0)
-            ->when($this->search, fn($query, $search) => $query->where('remark', 'like', '%' . $search . '%'))
+            ->where('wechat_bot_id', $this->wechatBot->id)
+            ->where('type','>',0)
+            ->when($value, fn($query, $value) => $query->where('remark', 'like', '%' . $value . '%'))
             ->take(10)
             ->get()
             ->keyBy('wechat_contact_id');
@@ -184,8 +190,12 @@ class WebChat extends Component
         $contacts = WechatContact::whereIn('id', $addMoreIds->keys())->get()->keyBy('id')->toArray();
         
         $this->contacts = $this->contacts + $contacts;
-        
+        // dd($this->contacts, $addMoreIds->pluck('remark','wechat_contact_id')->toArray());
         $this->searchIds = $addMoreIds->pluck('remark','wechat_contact_id')->toArray();
+    }
+
+    public function getContacts(){
+        return $this->contacts;
     }
 
     // protected $listeners = ['getNewMessages'];
@@ -200,10 +210,16 @@ class WebChat extends Component
     public $seatUsers;
     public $wechatMessages;
     public int $maxMessageId = 0;
+
+    public function getWechatMessages(){
+        return $this->conversations + $this->wechatMessages;
+    }
+
     public function getConversationsProperty(){
         if($this->maxMessageId!=0){
             Log::debug(__METHOD__, ['refresh','after init']);
             $messages = WechatMessage::where('id', '>', $this->maxMessageId)
+                ->where('wechat_bot_id', $this->wechatBot->id)
                 ->orderBy('id', 'desc')
                 ->get();
             if($messages->count()){
@@ -237,14 +253,13 @@ class WebChat extends Component
         }else{
             Log::debug(__METHOD__, ['init']);
             //初始化
-            $messages = WechatMessage::latest() //with(['seat','contact','from'])
-                // ->take(500)
-                ->where('created_at','>=', now()->subDays(3))
+            $messages = WechatMessage::where('wechat_bot_id', $this->wechatBot->id)
+                ->where('created_at','>=', now()->subDays(7))
                 ->get()
                 ->keyBy('id');
             $this->wechatMessages = $messages->groupBy('conversation')->toArray();
 
-            $this->maxMessageId = $messages->first()->id;
+            $this->maxMessageId = optional($messages->first())->id??-1;
             
             // contacts 好友信息
             $conversationIds = $messages->groupBy('conversation')->keys();
@@ -253,16 +268,22 @@ class WebChat extends Component
             $this->contacts = WechatContact::whereIn('id', $contactIds)->get()->keyBy('id')->toArray();
 
             $this->seatUsers = $this->user->currentTeam->allUsers()->keyBy('id')->toArray();
+
+
+            // search
+            $this->updatedSearch();
         }
         Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages)]);
         return $this->wechatMessages;
     }
     public function render()
     {
-        // $conversations = $this->getConversations();
+        $conversations = $this->getWechatMessages();
+        $contactsArray = $this->getContacts();
+        // dd($contactsArray);
         return view('livewire.webchat',[
-            'conversations'=>$this->conversations,
-            'contacts' => $this->contacts
+            'conversations' => $this->conversations,
+            'contactsArray' => $contactsArray // 不能直接 用 $this->contacts;
             ])->layout('layouts.webchat');
     }
 }

@@ -66,7 +66,7 @@
                     wire:click="$set('currentConversationId', {{$contactId}})">
                     <li class="messaging-create-channel__user-result">
                       <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
-                        <img data-testid="avatar-imgs" src="{{ $contacts[$contactId]['smallHead']?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+                        <img data-testid="avatar-imgs" src="{{ $contactsArray[$contactId]['smallHead']?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
                       </div>
                       <div class="messaging-create-channel__user-result__details">
                         <span>{{$remark}}</span>
@@ -87,12 +87,12 @@
         @php
             $time = $conversation[0]['updated_at']??now();
             $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
-            $name = $contacts[$contactId]['nickName']?:'G'.$contacts[$contactId]['id'];
+            $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
             $defaultAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
         @endphp
         <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
           <div class="channel-preview__avatars">
-            <img data-testid="avatar-img" src="{{$contacts[$contactId]['smallHead']?:$defaultAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+            <img data-testid="avatar-img" src="{{$contactsArray[$contactId]['smallHead']?:$defaultAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
           </div>
           <div class="channel-preview__content-wrapper">
             <div class="channel-preview__content-top">
@@ -159,9 +159,9 @@
               </svg>
             </div>
             <div class="messaging__channel-header__avatars"> 
-              <img data-testid="avatar-img" src="{{ $contacts[$currentConversationId]['smallHead']??$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+              <img data-testid="avatar-img" src="{{ $contactsArray[$currentConversationId]['smallHead']??$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
             </div>
-            <div class="channel-header__name">{{ $contacts[$currentConversationId]['nickName']??'暂无群名'.$contacts[$currentConversationId]['id'] }}</div>
+            <div class="channel-header__name">{{ $contactsArray[$currentConversationId]['nickName']??'暂无群名'.$contactsArray[$currentConversationId]['id'] }}</div>
             <div class="messaging__channel-header__right">
               <div class="messaging__typing-indicator">
                 <div>
@@ -184,7 +184,8 @@
                         <div class="str-chat__date-separator-date">{{ $updatedAt }}</div>
                       </div>
                     </li>
-                    @if($conversationFirstId && !isset($hideLoadMore[$currentConversationId]))
+                    @if( !isset($LoadMore[$currentConversationId]) 
+                      && $conversationFirstId && !isset($hideLoadMore[$currentConversationId]))
                     <div class=" str-chat__list-notifications">
                       <button 
                       wire:click="loadMore"
@@ -196,15 +197,15 @@
                 @php
                   // 群成员名字/本系统发送：座席名字/主动发送：bot自己的名字
                   $name = $message['from_contact_id'] 
-                      ? $contacts[$message['from_contact_id']]['nickName']?$contacts[$message['from_contact_id']]['nickName']:($message['from_contact_id']%100)
+                      ? $contactsArray[$message['from_contact_id']]['nickName']?$contactsArray[$message['from_contact_id']]['nickName']:($message['from_contact_id']%100)
                       : ($message['seat_user_id']
                         ? $seatUsers[$message['seat_user_id']]['name']
-                        : $contacts[$message['conversation']]['nickName']);
+                        : $contactsArray[$message['conversation']]['nickName']);
                         
                   $defaultAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
                   $avatar = $message['from_contact_id'] 
-                          ? ($contacts[$message['from_contact_id']]['smallHead']?:$defaultAvatar) 
-                          : ($contacts[$message['conversation']]['smallHead']?:$defaultAvatar);
+                          ? ($contactsArray[$message['from_contact_id']]['smallHead']?:$defaultAvatar) 
+                          : ($contactsArray[$message['conversation']]['smallHead']?:$defaultAvatar);
                 @endphp
 
                 <li class="str-chat__li str-chat__li--single" data-id="conversation-{{$message['id']??'0'}}">
