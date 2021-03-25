@@ -31,8 +31,10 @@ return [
     ],
 
     'weiju' =>[
-        'phone' => env('WEIJU_PHONE', ''),
-        'password' => env('WEIJU_PASSWORD', ''),
+        'account'=>[
+            'phone' => env('WEIJU_PHONE', ''),
+            'password' => env('WEIJU_PASSWORD', ''),
+        ],
         'baseUri' => env('WEIJU_ENDPOINT', ''),
     ],
 

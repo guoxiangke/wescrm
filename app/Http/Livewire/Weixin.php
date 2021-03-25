@@ -57,16 +57,13 @@ class Weixin extends Component
     // public $listened_rooms;
     public $wechatBot; // https://laravel-livewire.com/docs/2.x/properties
     // private $wechat; // protected and private properties DO NOT persist between Livewire updates. In general, you should avoid using them for storing state.
-    public $wxid;  // 和前端部分相关的$Wxid全部改成小写$wxid @see WechatBot::getWxidAttribute();
+    public $wxid='';  // 和前端部分相关的$Wxid全部改成小写$wxid @see WechatBot::getWxidAttribute();
 
     public function mount(Weiju $weiju)
     {
-        $response = $weiju->getToken();
-        if($response->failed()){
-            $this->msg = "系统错误， 请刷新再试！";
-            return ;
-        }
-        // dd($response->body());
+        $response = $weiju->getStatus();
+        if(is_null($response) || $response->failed()) return $this->msg = "系统错误， API接口登录失败，请联系管理员！";
+        // info($response->body());
         // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
         // "{"code":1,"msg":"登录成功","num":2,"expiretime":"2021-03-02 11:21:16","data":{"apikey":"exxx
         
@@ -76,6 +73,47 @@ class Weixin extends Component
         $user = auth()->user();
         $team = $user->currentTeam;
         $this->teamName = $team->name;
+        // 第一次登录流程：
+            // 1. 判断是否获取到token or return Failed Msg 给管理后台.
+            // 2. 获得token后，返回 到期时间，可登录微信数量 给管理后台
+            // 3.
+        if($response->ok() && $response['code'] == 1) {
+            {// cache token
+                // 使用option可靠存储，因为Cache可能失效！
+                if(!option_exists('weiju.token')){
+                    option(['weiju.token' => $response['data']['apikey']]);
+                }
+                $maxClientsCounts = $response['data']['num'];
+                $expiresAt = $response['data']['expiretime'];
+
+                $this->expiresAt = $expiresAt;
+            }
+            // 如果weiju没有过期，且 还有剩余 可登录的bot配额
+            if($expiresAt > now() && $maxClientsCounts > WechatBot::whereNotNull('login_at')->count()){
+                $this->showRemind = true;
+                // 若传入 wxid 将会弹窗登录,作为第二次登录参数，稳定不掉线
+                // 返回二维码，默认上一行一定能成功
+                // About rescue() @see https://pbs.twimg.com/media/Ev-RyPtWYAEu0M1?format=jpg&name=medium
+                $loginResponse = $weiju->login($this->wxid);
+                if(is_null($loginResponse) || $response->failed()){
+                    return $this->msg = " 请求二维码时，API返回错误，请稍后再试！";
+                }
+                $wId = $loginResponse['data']['wId']??false;
+                if(!$wId){
+                    $this->msg = $loginResponse['msg'] .  " API返回错误，🙅‍♂️，无wId";
+                    return;
+                }
+                $this->qr = $loginResponse['data']['qrCodeUrl']??''; // "http://weixin.qq.com/x/${wId}";
+                $this->msg = $loginResponse['msg'] .  " 后台队列处理中，请按下面说明步骤操作，耐心等待3～4分钟后再刷新";
+                
+                // 启动后台队列任务，循环直到 扫码确认成功！
+                Cache::put('weiju_wId', $wId, now()->addMinutes(5)); //防止多次刷新，多个Job
+                WechatInitQueue::dispatch($wId, $team, $user->id)->delay(now()->addSecond(3));
+
+                return ;
+            }
+            
+        }
 
         // 付费管理2: 座席过期
         if(!$user->ownsTeam($team)){
@@ -135,56 +173,11 @@ class Weixin extends Component
 
         }
 
-        if($response->failed()){
-            $this->msg = "系统错误：".$response['msg']." ， # 请等待10分钟再试!";
-            Log::error(__METHOD__, [__LINE__, $response]);
-            return;
-        }
-        
-
-        // 第一次登录流程：
-            // 1. 判断是否获取到token or return Failed Msg 给管理后台.
-            // 2. 获得token后，返回 到期时间，可登录微信数量 给管理后台
-            // 3.
-        if($response['code'] == 1) // && isset($response['data']['apikey'])
-        {
-            {// cache token
-                // 使用option可靠存储，因为Cache可能失效！
-                if(!option_exists('weiju.token')){
-                    option(['weiju.token' => $response['data']['apikey']]);
-                }
-                $maxClientsCounts = $response['data']['num'];
-                $expiresAt = $response['data']['expiretime'];
-
-                $this->expiresAt = $expiresAt;
-                option(['weiju.expired_at' => $expiresAt, 'weiju.clients' => $maxClientsCounts]);
-            }
-            // 如果weiju没有过期，且 还有剩余 可登录的bot配额
-            ;
-            if($expiresAt > now() && $maxClientsCounts > WechatBot::whereNotNull('login_at')->count()){
-                $this->showRemind = true;
-                // 若传入 wxid 将会弹窗登录,作为第二次登录参数，稳定不掉线
-                $response = $this->wxid?$weiju->getQR($this->wxid):$weiju->getQR();
-                // 返回二维码，默认上一行一定能成功
-                $this->qr = $response['data']['qrCodeUrl']; // "http://weixin.qq.com/x/${wId}";
-                // dd($response->json());
-                $this->msg = $response['msg'] .  " 后台队列处理中，请按下面说明步骤操作，耐心等待3～4分钟后再刷新";
-                // 启动后台队列任务，循环直到 扫码确认成功！
-                Cache::put('weiju_wId', $response['data']['wId'], now()->addMinutes(5)); //防止多次刷新，多个Job
-                WechatInitQueue::dispatch($response['data']['wId'], $team, $user->id)->delay(now()->addSecond(3));
-
-                return ;
-            }
-            
-        }
 
         // if($responseWho['code'] == -13){ // "{"code":-13,"msg":"您已退出微信","data":{}}"
         //     return $this->msg = "主动退出iPad登录后，需等5分钟再试!";
         // }
-        Log::debug(__METHOD__, [$response]);
-        // if($response['code'] == 0){
-            return $this->msg = "主动退出iPad登录后，需等5分钟再试! 或" . $response['msg']; // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
-        // }
+        return $this->msg = "主动退出iPad登录后，需等5分钟再试! 或" . $response['msg']; // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
     }
 
 
