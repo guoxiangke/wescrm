@@ -10,9 +10,11 @@ use App\Models\WechatBot;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Models\Membership;
+use App\Models\WechatContact;
 
 class Weixin extends Component
 {
+    public string $defaultAvatar = WechatContact::DEFAULT_AVATAR; // fallback
     public $qr;
     public $showRemind;
     public $who;
@@ -177,7 +179,7 @@ class Weixin extends Component
         // if($responseWho['code'] == -13){ // "{"code":-13,"msg":"您已退出微信","data":{}}"
         //     return $this->msg = "主动退出iPad登录后，需等5分钟再试!";
         // }
-        return $this->msg = "主动退出iPad登录后，需等5分钟再试! 或" . $response['msg']; // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
+        return $this->msg = "主动退出iPad登录后，需等5分钟再试! " . $response['msg']; // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
     }
 
 
