@@ -145,14 +145,16 @@ class WebChat extends Component
             ->where('wechat_bot_id', $this->wechatBot->id)
             ->where('id', '<', $this->conversationFirstId)
             ->take($loadCount)
-            // ->orderBy('id', 'desc')
             ->get();
         $count = $messages->count();
         if($count>0){
             $this->conversationFirstId = $messages->last()->id;
             $old = $this->wechatMessages[$this->currentConversationId]??[];
-            $old[$messages->id] = $messages->toArray();
-            $this->wechatMessages[$this->currentConversationId] = $old;
+            $new = [];
+            $messages->each(function($message) use(&$new){
+                $new[$message->id] = $message->toArray();
+            });
+            $this->wechatMessages[$this->currentConversationId] = $new + $old;
 
             // 加载contacts
             if($this->isRoom){
@@ -209,11 +211,7 @@ class WebChat extends Component
     public $contacts;
     public $wechatMessages;
     public int $maxMessageId = 0;
-
-    // public function getWechatMessages(){
-    //     return $this->conversations + $this->wechatMessages;
-    // }
-
+    
     public function getConversations(){
         if($this->maxMessageId!=0){
             Log::debug(__METHOD__, ['refresh', "maxMessageId:{$this->maxMessageId}", ]);
@@ -253,7 +251,7 @@ class WebChat extends Component
             Log::debug(__METHOD__, ['init']);
             //初始化
             $messages = WechatMessage::where('wechat_bot_id', $this->wechatBot->id)
-                ->where('created_at','>=', now()->subDays(7))
+                ->where('created_at','>=', now()->subDays(1))
                 ->get();
             $this->wechatMessages = $messages->groupBy('conversation')->map(fn($items)=>$items->keyBy('id'))->toArray();
             $this->maxMessageId = optional($messages->last())->id??-1;
@@ -268,8 +266,7 @@ class WebChat extends Component
             // search
             $this->updatedSearch();
         }
-        // info($this->wechatMessages, [count($this->wechatMessages[518])]);
-        Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages[518])]);
+        Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages)]);
         return $this->wechatMessages;
     }
     public function render()
