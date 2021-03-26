@@ -89,11 +89,11 @@
             $time = $conversation['updated_at']??now();
             $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
             $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
-            $defaultAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
+            $fallbackAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
         @endphp
         <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
           <div class="channel-preview__avatars">
-            <img data-testid="avatar-img" src="{{$contactsArray[$contactId]['smallHead']?:$defaultAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
+            <img data-testid="avatar-img" src="{{$contactsArray[$contactId]['smallHead']?:$fallbackAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
           </div>
           <div class="channel-preview__content-wrapper">
             <div class="channel-preview__content-top">
@@ -197,25 +197,31 @@
                 
                 @php
                   // 群成员名字/本系统发送：座席名字/主动发送：bot自己的名字
-                  $name = $message['from_contact_id'] 
-                      ? $contactsArray[$message['from_contact_id']]['nickName']?$contactsArray[$message['from_contact_id']]['nickName']:($message['from_contact_id']%100)
-                      : ($message['seat_user_id']
+                  $isBot = $message['from_contact_id']?false:true;
+                  if($isBot){ 
+                    //分2种情况
+                    // 1.从手机发送 显示bot头像
+                    // 2.从webchat发送，显示座席头像
+                    $name = $message['seat_user_id']
                         ? $seatUsers[$message['seat_user_id']]['name']
-                        : $contactsArray[$message['conversation']]['nickName']);
-                        
-                  $defaultAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
-                  $avatar = $message['from_contact_id'] 
-                          ? ($contactsArray[$message['from_contact_id']]['smallHead']?:$defaultAvatar) 
-                          : ($contactsArray[$message['conversation']]['smallHead']?:$defaultAvatar);
+                        : $wechatBot->nickName;
+                    
+                    $avatar = $message['seat_user_id']
+                        ? $seatUsers[$message['seat_user_id']]['profile_photo_url']
+                        : ($wechatBot->bigHead?:$defaultAvatar);
+                  }else{
+                    $name = $contactsArray[$message['from_contact_id']]['nickName']?$contactsArray[$message['from_contact_id']]['nickName']:($message['from_contact_id']%100);
+                    $fallbackAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
+                    $avatar =  $contactsArray[$message['from_contact_id']]['smallHead']?:$fallbackAvatar;
+                  }
                 @endphp
 
                 <li class="str-chat__li str-chat__li--single" data-id="conversation-{{$message['id']??'0'}}">
                   <div 
                     class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text 
-                    {{ $message['seat_user_id'] ?'str-chat__message--me str-chat__message-simple--me':'' }} 
+                    {{ $isBot?'str-chat__message--me str-chat__message-simple--me':'' }} 
                     ">
-                    @if($message['seat_user_id'])
-                      <span class="hidden str-chat__message-simple-status" data-testid="message-status-received">
+                      <span class=" str-chat__message-simple-status" data-testid="message-status-received">
                         <div class="str-chat__tooltip">Delivered</div>
                         <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.72 6.633a.955.955 0 1 0-1.352-1.352L6.986 8.663 5.633 7.31A.956.956 0 1 0 4.28 8.663l2.029 2.028a.956.956 0 0 0 1.353 0l4.058-4.058z" fill="#006CFF" fill-rule="evenodd"></path>
@@ -224,20 +230,11 @@
 
                       <div class="str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" style="display:block ;width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
                         <img data-testid="avatar-img" 
-                          src="{{$message['seat']['profile_photo_url']??$defaultAvatar}}"
-                          alt="s"
+                          src="{{ $avatar }}"
+                          alt="{{ $name }}"
                           class="str-chat__avatar-image str-chat__avatar-image--loaded" 
                           style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
                       </div>
-                    @else
-                    <div class="block str-chat__avatar str-chat__avatar--circle" title="solitary-shadow-5" style="width: 32px; height: 32px; flex-basis: 32px; line-height: 32px; font-size: 16px;">
-                      <img data-testid="avatar-img" 
-                        src="{{ $avatar }}"
-                        alt="{{ $name }}"
-                        class="str-chat__avatar-image str-chat__avatar-image--loaded" 
-                        style="width: 32px; height: 32px; flex-basis: 32px; object-fit: cover;">
-                    </div>
-                    @endif
 
                     @php
                       // TODO   处理 content   

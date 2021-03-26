@@ -44,9 +44,11 @@ class WebChat extends Component
     }
 
     
+    public $seatUsers;
     public function mount()
     {
         $this->user = auth()->user();
+        $this->seatUsers = $this->user->currentTeam->allUsers()->keyBy('id')->toArray();
         $this->wechatBot = WechatBot::where('team_id', $this->user->currentTeam->id)->firstOrFail();
 
         $data = ['content'=>'请输入发送内容...'];
@@ -205,7 +207,6 @@ class WebChat extends Component
     //     return 1;
     // }
     public $contacts;
-    public $seatUsers;
     public $wechatMessages;
     public int $maxMessageId = 0;
 
@@ -262,8 +263,6 @@ class WebChat extends Component
             $fromIds = $messages->groupBy('from_contact_id')->keys()->filter();
             $contactIds =  $conversationIds->merge($fromIds)->unique()->all();
             $this->contacts = WechatContact::whereIn('id', $contactIds)->get()->keyBy('id')->toArray();
-
-            $this->seatUsers = $this->user->currentTeam->allUsers()->keyBy('id')->toArray();
 
 
             // search
