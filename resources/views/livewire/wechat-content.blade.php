@@ -34,9 +34,9 @@
             <x-table.heading class="pr-0 w-8">
                 <x-input.checkbox wire:model="selectPage" />
             </x-table.heading>
+            <x-table.heading multi-column>Title</x-table.heading>
             <x-table.heading multi-column
-                class="w-full">Title</x-table.heading>
-            <x-table.heading multi-column>Content</x-table.heading>
+            class="w-full">Content</x-table.heading>
             <x-table.heading sortable multi-column wire:click="sortBy('created_at')" :direction="$sorts['created_at'] ?? null">
                 Created_at</x-table.heading>
             <x-table.heading sortable multi-column wire:click="sortBy('updated_at')" :direction="$sorts['updated_at'] ?? null">
