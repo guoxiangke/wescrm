@@ -50,11 +50,11 @@ class Wechat {
     public function getAllContacts():Response { return $this->http->post("/foreign/message/getAllContact", $this->data);}
     public function getFriendList():Response { return $this->http->post("/foreign/friends/getFriendList", $this->data);}
     
-    // 查找用户 /searchUser 不可用，使用 /chat
+    # 获取好友信息
     public function friendSearch($ToWxid):Response { return $this->http->post("/foreign/friends/chat", array_merge($this->data, get_defined_vars()));}
     // 此接口仅支持直接获取以wxid开头的微信号信息！！！// wxid开头的微信号，调用⬆️搜索用户接口⬆️获取信息
     
-    // 查找即陌生/好友 获取V1 V2 用于主动添加好友
+    // 查找用户 即陌生/好友 获取V1 V2 用于主动添加好友
     public function friendFind($ToWxid):Response {
         return $this->http->post("/foreign/friends/searchUser", array_merge($this->data, get_defined_vars()));
     }
@@ -70,7 +70,7 @@ class Wechat {
         // $type 传3即可，添加来源：1-QQ号搜索，3-微信号搜索，4-QQ好友，8-通过群聊，12-来自QQ好友，14-通过群聊，15-手机号
         // v1必填	string	从搜索用户接口获取 
         // v2必填	string	从搜索用户接口获取
-    public function friendAdd($v1, $v2, $type=3, $verify="Hi"):Response { return $this->http->post("/foreign/friends/passAddFriends", array_merge($this->data, get_defined_vars()));}
+    public function friendAdd($v1, $v2, $verify="Hi", $type=3):Response { return $this->http->post("/foreign/friends/add", array_merge($this->data, get_defined_vars()));}
     
     #设置个人头头像 path为Url链接
     public function selfSetAvatar($path):Response { return $this->http->post("/foreign/friends/sendHeadImage", array_merge($this->data, get_defined_vars()));}
@@ -181,7 +181,7 @@ class Wechat {
 
     // 获取标签列表
     
-    // TODO 标签初始化！
+    // 标签初始化！
     public function getLables():Response 
     {
         $data = array_merge($this->data, get_defined_vars());

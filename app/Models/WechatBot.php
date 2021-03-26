@@ -180,18 +180,35 @@ class WechatBot extends Model
     // $ToWxid = 'bluesky_still';
     // $response = $wechat->friendFind($ToWxid);
     // $response = $wechat->friendAdd($response['data']['v1'],$response['data']['v2']);
-    public function addFriend($ToWxid)
+    public function addFriend($ToWxid, $message="", $tryTimes = 3)
     {
         $Wxid = $this->userName;
         $wechat = new Wechat($Wxid);
+        $message = $message?: '我是' . $this->nickName;
 
-        //TODO try catch & try 3 times
-        $response1 = $wechat->friendFind($ToWxid);
-        if(isset($response1['data']['v1']) && isset($response1['data']['v1'])){
-            $response = $wechat->friendAdd($response1['data']['v1'], $response1['data']['v2']);
-            if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
-                Log::info(__METHOD__, ['WechatBot::add 主动添加好友成功', $Wxid, $ToWxid]);
+        // 搜索用户，获取v1、v2数据， rescue:网络出错是不报错、不终止，而是等待x秒重试3次
+        $count = 0;
+        do{
+            sleep(pow($count,2)); //0 1s 4s
+            $response1 = rescue(fn()=>$wechat->friendFind($ToWxid), null, false);
+        }while(!$response1 && $count++<$tryTimes);
+
+        // 执行添加好友操作
+        if($response1->ok() && Arr::has($response1,['data.v1','data.v2'])){
+            $v1 = $response1['data']['v1'];
+            $v2 = $response1['data']['v2'];
+            $count = 0;
+            do{
+                sleep(pow($count,2)); //0 1s 4s
+                $response2 = rescue(fn()=>$wechat->friendAdd($v1, $v2, $message), null, false);
+            }while(!$response2 && $count++<$tryTimes);
+            if($response2->ok() && $response2['code'] == 1000){ // 1000成功，10001失败
+                Log::info(__METHOD__, ['主动添加好友成功', $Wxid, $ToWxid]);
+            }else{
+                Log::error(__METHOD__, ['主动添加好友失败2', $Wxid, $ToWxid, $response1->json(), $response2->json()]);
             }
+        }else{
+            Log::error(__METHOD__, ['加好友失败，对方可能已是好友', $Wxid, $ToWxid, $response1->json()]);
         }
     }
 
