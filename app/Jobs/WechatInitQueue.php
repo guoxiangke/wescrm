@@ -13,6 +13,7 @@ use App\Services\Wechat;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Models\WechatBot;
+use App\Models\WechatBotContact;
 use App\Models\WechatContact;
 use Illuminate\Support\Arr;
 use phpDocumentor\Reflection\Types\Integer;
@@ -100,6 +101,21 @@ class WechatInitQueue implements ShouldQueue
                 $wechat->init(); //为什么要init，不init可以用吗？
                 Log::info("InitWechat: 载入数据完毕 {$wechatBotData['userName']}");
 
+                // 初始化标签
+                // 1.记录 手机微信里的wxLabels ID和对应名称labelName
+                $wxLabels = [];
+                $response = $wechatBot->wechat->getLables();
+                if($response->ok() && $response['code'] == 1000){
+                    foreach ($response['data'] as $label) {
+                        $wxLabels[$label['labelID']] = $label['labelName'];
+                    }
+                }else{
+                    Log::error(__METHOD__, [__LINE__, '初始化标签', '失败', $response]);
+                }
+                // 2.记录 每个联系人的标签
+                $tags = [];
+                $tagWith = 'wechat-contact-team-' . $this->team->id;
+
                 # 保存 bot 的通讯录信息（不含群成员）
                 $response = $wechat->getAllContacts();
                 if($response->ok() && $response['code'] == 1000){
@@ -124,10 +140,28 @@ class WechatInitQueue implements ShouldQueue
                                     // 'stranger'=>3, // 3
                                 'seat_user_id' => $teamOwnerId,
                             ];// @see https://laravel.com/docs/8.x/eloquent-relationships#updating-many-to-many-relationships
+                            
+                            // 2.记录 每个联系人的标签
+                            if($type == 'friend' && isset($data['labelIdList'])){
+                                $wxLabelIds = explode(',', $data['labelIdList']);
+                                foreach ($wxLabelIds as $wxLabelId) {
+                                    $tags[$contact->id][] = $wxLabels[$wxLabelId];
+                                }
+                                // $wechatBotContact->attachTag($tagName, $tagWith);
+                            }
                         }
                         Log::info(__METHOD__, ["InitWechat", "保存通讯录", $type, count($values)]);
                     }
                     $wechatBot->contacts()->syncWithoutDetaching($attachs);
+                    // 3.写入 每个联系人的标签
+                    foreach ($tags as $contactId => $tagNames) {
+                        $wechatBotContact = WechatBotContact::where('wechat_bot_id', $wechatBot->id)
+                            ->where('wechat_contact_id', $contactId)
+                            ->first();
+                        foreach ($tagNames as $tagName) {
+                            $wechatBotContact->attachTag($tagName, $tagWith);
+                        }
+                    }
                 }else{
                     Log::error(__METHOD__, [__LINE__, $response]);
                 }
