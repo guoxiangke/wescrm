@@ -31,7 +31,7 @@
 
         @if($who)
             <figure class="md:flex bg-gray-100 rounded-xl p-8 md:p-0">
-                <img class="w-36 h-36  mx-auto" src="{{ $who["bigHead"]??''$defaultAvatar }}" alt="{{ $who["nickName"] }}" title="{{ $who["nickName"] }}的头像" width="384" height="512">
+                <img class="w-36 h-36  mx-auto" src="{{ $who["bigHead"]??$defaultAvatar }}" alt="{{ $who["nickName"] }}" title="{{ $who["nickName"] }}的头像" width="384" height="512">
                 <div class="pt-0 md:p-8 space-y-4">
                     <blockquote>
                         <p class="text-lg font-semibold">{{ $who["nickName"] }} ({{ $teamName }})</p>
