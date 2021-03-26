@@ -24,7 +24,6 @@ class WechatController extends Controller
         // { "type": "image", "to": "bluesky_still", "data": { "content": "https://www.upyun.com/static/logos/dangdang.png" } }
         // { "type": "video", "to": "bluesky_still", "data": { "path": "https://abc.yilindeli.com/teach/LevelTestMaterial/0zhumuTestFiles/test.mp4", "thumbPath": "https://www.upyun.com/static/logos/dangdang.png" } }
         // TODO url card !
-
         return $wechatBot->send(
             (array) $request['to'],
             WechatContent::make([
@@ -33,5 +32,9 @@ class WechatController extends Controller
                 'content' => ['data'=>$request['data']],
             ])
         );
+    }
+    public function add(Request $request){
+        $wechatBot = WechatBot::where('team_id', auth()->user()->currentTeam->id)->firstOrFail();
+        return $wechatBot->addFriend($request['telephone'], $request['message']??"");
     }
 }

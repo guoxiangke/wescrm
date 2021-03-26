@@ -21,4 +21,5 @@ Route::group([
     'middleware' => ['auth:sanctum',]
     ], function () {
         Route::post('/wechat/send', [WechatController::class, 'send']);
+        Route::post('/wechat/add', [WechatController::class, 'add']);
 });
