@@ -280,7 +280,6 @@ class WebChat extends Component
     {
         $conversations = $this->getWechatMessages();
         $contactsArray = $this->getContacts();
-        // dd($contactsArray);
         return view('livewire.webchat',[
             'conversations' => $this->conversations,
             'contactsArray' => $contactsArray // 不能直接 用 $this->contacts;

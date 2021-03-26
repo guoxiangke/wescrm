@@ -95,6 +95,7 @@ class WechatAutoReply extends Component
     public function getRowsQueryProperty()
     {
         $query = Model::query()->with('content')
+            ->where('wechat_bot_id', $this->wechatBotId)
             ->when($this->filters['search'], fn($query, $search) => $query->where('keyword', 'like', '%' . $search . '%'));
 
         return $this->applySorting($query);

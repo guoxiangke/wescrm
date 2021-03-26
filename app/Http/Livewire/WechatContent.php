@@ -152,6 +152,7 @@ class WechatContent extends Component
     public function getRowsQueryProperty()
     {
         $query = Model::query()
+            ->where('wechat_bot_id', $this->wechatBot->id)
             ->when($this->filters['search'], fn($query, $search) => $query->where('name', 'like', '%' . $search . '%'));
 
         return $this->applySorting($query);
