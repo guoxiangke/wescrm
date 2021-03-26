@@ -203,6 +203,7 @@ class WechatBot extends Model
                 $response2 = rescue(fn()=>$wechat->friendAdd($v1, $v2, $message), null, false);
             }while(!$response2 && $count++<$tryTimes);
             if($response2->ok() && $response2['code'] == 1000){ // 1000成功，10001失败
+                return ['success' => true];
                 Log::info(__METHOD__, ['主动添加好友成功', $Wxid, $ToWxid]);
             }else{
                 Log::error(__METHOD__, ['主动添加好友失败2', $Wxid, $ToWxid, $response1->json(), $response2->json()]);
@@ -210,6 +211,7 @@ class WechatBot extends Model
         }else{
             Log::error(__METHOD__, ['加好友失败，对方可能已是好友', $Wxid, $ToWxid, $response1->json()]);
         }
+        return ['success' => false];
     }
 
     // 同意添加好友请求
