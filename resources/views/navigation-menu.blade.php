@@ -21,7 +21,7 @@
                     <x-jet-nav-link href="{{ route('channel.wechat.content') }}" :active="request()->routeIs('channel.wechat.content')">
                         Content
                     </x-jet-nav-link>
-                    <x-jet-nav-link href="{{ route('channel.wechat.autoreply') }}" :active="request()->routeIs('channel.wechat.batch')">
+                    <x-jet-nav-link href="{{ route('channel.wechat.autoreply') }}" :active="request()->routeIs('channel.wechat.autoreply')">
                         AutoReply
                     </x-jet-nav-link>
                     <x-jet-nav-link href="{{ route('channel.wechat.contact') }}" :active="request()->routeIs('channel.wechat.contact')">
