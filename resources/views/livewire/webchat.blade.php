@@ -85,7 +85,8 @@
       <div class="messaging__channel-list">
         @foreach ($conversations as $contactId => $conversation)
         @php
-            $time = $conversation[0]['updated_at']??now();
+            $conversation = end($conversation); //最后一个对方发的消息
+            $time = $conversation['updated_at']??now();
             $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
             $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
             $defaultAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
@@ -99,7 +100,7 @@
               <p class="channel-preview__content-name">{{ $name }}</p>
               <p class="channel-preview__content-time">{{ $updatedAt }}</p>
             </div>
-            <p class="channel-preview__content-message">{{ $conversation[0]['content']['content']??'新消息🆕' }}</p>
+            <p class="channel-preview__content-message">{{ $conversation['content']['content']??'新消息🆕' }} </p>
           </div>
         </div>
         @endforeach
@@ -172,7 +173,7 @@
           <div class="str-chat__list" x-ref="foo">
             <div class="str-chat__reverse-infinite-scroll" data-testid="reverse-infinite-scroll">
               <ul class="str-chat__ul">
-                @foreach (array_reverse($conversations[$currentConversationId]) as $message)
+                @foreach ($conversations[$currentConversationId] as $message)
                   @php
                       $time = $message['updated_at']??now();
                       $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();

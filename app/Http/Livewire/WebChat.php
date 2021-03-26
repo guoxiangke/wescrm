@@ -100,7 +100,6 @@ class WebChat extends Component
     public $loadMore = [];
     public function updatedCurrentConversationId($contactId){
         $this->hasNextPage =  true;
-        // dd($this->contacts);
         $this->emit('scrollToEnd');
         $this->isCreating = false;
         $this->isMobileShowContact = false;
@@ -120,7 +119,7 @@ class WebChat extends Component
             ]);
             $this->wechatMessages[$contactId][] = $wechatMessage;
         }else{
-            $this->conversationFirstId = last($conversations[$contactId])['id']??0; // ？？for 切换新的会话
+            $this->conversationFirstId = current($conversations[$contactId])['id']??0; // ？？for 切换新的会话
         }
         
         if(isset($this->contacts[$contactId])){
@@ -130,9 +129,7 @@ class WebChat extends Component
             $this->isRoom = false;
             $newContact = WechatContact::where('id', $contactId)->get()->keyBy('id')->toArray();
             $this->contacts = $this->contacts + $newContact;
-            // dd($this->contacts,$contactId);
         }
-        
         $this->reset('search');
         // $this->loadMore();
     }
@@ -146,13 +143,14 @@ class WebChat extends Component
             ->where('wechat_bot_id', $this->wechatBot->id)
             ->where('id', '<', $this->conversationFirstId)
             ->take($loadCount)
-            ->orderBy('id', 'desc')
+            // ->orderBy('id', 'desc')
             ->get();
         $count = $messages->count();
         if($count>0){
             $this->conversationFirstId = $messages->last()->id;
             $old = $this->wechatMessages[$this->currentConversationId]??[];
-            $this->wechatMessages[$this->currentConversationId] = array_merge($old, $messages->toArray());
+            $old[$messages->id] = $messages->toArray();
+            $this->wechatMessages[$this->currentConversationId] = $old;
 
             // 加载contacts
             if($this->isRoom){
@@ -211,16 +209,15 @@ class WebChat extends Component
     public $wechatMessages;
     public int $maxMessageId = 0;
 
-    public function getWechatMessages(){
-        return $this->conversations + $this->wechatMessages;
-    }
+    // public function getWechatMessages(){
+    //     return $this->conversations + $this->wechatMessages;
+    // }
 
-    public function getConversationsProperty(){
+    public function getConversations(){
         if($this->maxMessageId!=0){
-            Log::debug(__METHOD__, ['refresh','after init']);
+            Log::debug(__METHOD__, ['refresh', "maxMessageId:{$this->maxMessageId}", ]);
             $messages = WechatMessage::where('id', '>', $this->maxMessageId)
                 ->where('wechat_bot_id', $this->wechatBot->id)
-                ->orderBy('id', 'desc')
                 ->get();
             if($messages->count()){
                 // 新增加的 contacts 好友信息
@@ -228,18 +225,19 @@ class WebChat extends Component
                 $fromIds = $messages->groupBy('from_contact_id')->keys()->filter();
                 $contactIds =  $conversationIds->merge($fromIds)->unique();
                 if($contactIds->count()){
-                    Log::error(__METHOD__, ['新消息中，包含的 contactIds', $contactIds->toArray()]);
+                    Log::debug(__METHOD__, ['新消息中，包含的 contactIds', $contactIds->toArray()]);
                     // $this->contacts->keyBy('id')->toArray();
                     $addMoreIds = $contactIds->diff(collect($this->contacts)->keys());
-                    Log::error(__METHOD__, ['新消息中，包含的 addMoreIds', count($this->contacts), $addMoreIds->toArray()]);
+                    Log::debug(__METHOD__, ['新消息中，包含的 addMoreIds', count($this->contacts), $addMoreIds->toArray()]);
                     if($addMoreIds->count()){
                         $contacts = WechatContact::whereIn('id', $addMoreIds->all())->get();
                         $this->contacts = $this->contacts + $contacts->keyBy('id')->toArray();
-                        Log::error(__METHOD__, ['新消息中 新增的 contacts', count($this->contacts), $contacts->toArray()]);
+                        Log::debug(__METHOD__, ['新消息中 新增的 contacts', count($this->contacts), $contacts->toArray()]);
                     }
                 }
 
-                $this->maxMessageId = $messages->first()->id;
+                // $this->maxMessageId = $messages->last()->id;
+                $this->maxMessageId = optional($messages->last())->id??$this->maxMessageId;
                 // $messages = $this->wechatMessages->merge($messages);
                 $messages->each(function($message) {
                     $old = $this->wechatMessages[$message->conversation]??[];
@@ -255,11 +253,9 @@ class WebChat extends Component
             //初始化
             $messages = WechatMessage::where('wechat_bot_id', $this->wechatBot->id)
                 ->where('created_at','>=', now()->subDays(7))
-                ->get()
-                ->keyBy('id');
-            $this->wechatMessages = $messages->groupBy('conversation')->toArray();
-
-            $this->maxMessageId = optional($messages->first())->id??-1;
+                ->get();
+            $this->wechatMessages = $messages->groupBy('conversation')->map(fn($items)=>$items->keyBy('id'))->toArray();
+            $this->maxMessageId = optional($messages->last())->id??-1;
             
             // contacts 好友信息
             $conversationIds = $messages->groupBy('conversation')->keys();
@@ -273,15 +269,17 @@ class WebChat extends Component
             // search
             $this->updatedSearch();
         }
-        Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages)]);
+        // info($this->wechatMessages, [count($this->wechatMessages[518])]);
+        Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages[518])]);
         return $this->wechatMessages;
     }
     public function render()
     {
-        $conversations = $this->getWechatMessages();
+        $conversations = $this->getConversations();
+        // dd($conversations);
         $contactsArray = $this->getContacts();
         return view('livewire.webchat',[
-            'conversations' => $this->conversations,
+            'conversations' => $conversations,
             'contactsArray' => $contactsArray // 不能直接 用 $this->contacts;
             ])->layout('layouts.webchat');
     }
