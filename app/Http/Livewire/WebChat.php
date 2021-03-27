@@ -18,7 +18,8 @@ class WebChat extends Component
 
     public string $defaultAvatar = WechatContact::DEFAULT_AVATAR; // fallback
     
-    public bool $isThread = false;
+    public bool $isThread; //是否开启右边栏
+    public bool $isEmojiPicker;
     public bool $isMobileShowContact = false;
 
     public bool $isCreating = true;
@@ -27,7 +28,6 @@ class WebChat extends Component
     public bool $isRoom = false;
     
     public string $currentTeamName;
-    public bool $isEmojiPickerOpen = false;
 
     public User $user;
     public WechatContent $editing;
@@ -50,6 +50,10 @@ class WebChat extends Component
     public $styles;
     public function mount()
     {
+
+        $this->isThread = true;
+        $this->isEmojiPicker = false;
+
         $this->codes = json_decode('{"0":"[\u5fae\u7b11]","1":"[\u6487\u5634]","2":"[\u8272]","3":"[\u53d1\u5446]","4":"[\u5f97\u610f]","5":"[\u6d41\u6cea]","6":"[\u5bb3\u7f9e]","7":"[\u95ed\u5634]","8":"[\u7761]","9":"[\u5927\u54ed]","10":"[\u5c34\u5c2c]","11":"[\u53d1\u6012]","12":"[\u8c03\u76ae]","13":"[\u5472\u7259]","14":"[\u60ca\u8bb6]","15":"[\u96be\u8fc7]","17":"[\u51b7\u6c57]","18":"[\u6293\u72c2]","19":"[\u5410]","20":"[\u5077\u7b11]","21":"[\u6109\u5feb]","22":"[\u767d\u773c]","23":"[\u50b2\u6162]","25":"[\u56f0]","26":"[\u60ca\u6050]","27":"[\u6d41\u6c57]","28":"[\u61a8\u7b11]","29":"[\u60a0\u95f2]","30":"[\u594b\u6597]","31":"[\u5492\u9a82]","32":"[\u7591\u95ee]","33":"[\u5618]","34":"[\u6655]","36":"[\u8870]","37":"[\u9ab7\u9ac5]","38":"[\u6572\u6253]","39":"[\u518d\u89c1]","40":"[\u64e6\u6c57]","41":"[\u62a0\u9f3b]","42":"[\u9f13\u638c]","44":"[\u574f\u7b11]","45":"[\u5de6\u54fc\u54fc]","46":"[\u53f3\u54fc\u54fc]","47":"[\u54c8\u6b20]","48":"[\u9119\u89c6]","49":"[\u59d4\u5c48]","50":"[\u5feb\u54ed\u4e86]","51":"[\u9634\u9669]","52":"[\u4eb2\u4eb2]","54":"[\u53ef\u601c]","55":"[\u83dc\u5200]","56":"[\u897f\u74dc]","57":"[\u5564\u9152]","60":"[\u5496\u5561]","62":"[\u732a\u5934]","63":"[\u73ab\u7470]","64":"[\u51cb\u8c22]","65":"[\u5634\u5507]","66":"[\u7231\u5fc3]","67":"[\u5fc3\u788e]","68":"[\u86cb\u7cd5]","70":"[\u70b8\u5f39]","74":"[\u4fbf\u4fbf]","75":"[\u6708\u4eae]","76":"[\u592a\u9633]","78":"[\u62e5\u62b1]","79":"[\u5f3a]","80":"[\u5f31]","81":"[\u63e1\u624b]","82":"[\u80dc\u5229]","83":"[\u62b1\u62f3]","84":"[\u52fe\u5f15]","85":"[\u62f3\u5934]","89":"[OK]","92":"[\u8df3\u8df3]","93":"[\u53d1\u6296]","94":"[\u6004\u706b]","95":"[\u8f6c\u5708]","300":"[\u7b11\u8138]","301":"[\u751f\u75c5]","302":"[\u7834\u6d95\u4e3a\u7b11]","303":"[\u5410\u820c]","304":"[\u8138\u7ea2]","305":"[\u6050\u60e7]","306":"[\u5931\u671b]","307":"[\u65e0\u8bed]","204":"[\u563f\u54c8]","205":"[\u6342\u8138]","202":"[\u5978\u7b11]","206":"[\u673a\u667a]","212":"[\u76b1\u7709]","211":"[\u8036]","313":"[\u5403\u74dc]","314":"[\u52a0\u6cb9]","315":"[\u6c57]","316":"[\u5929\u554a]","317":"[Emm]","318":"[\u793e\u4f1a\u793e\u4f1a]","319":"[\u65fa\u67f4]","320":"[\u597d\u7684]","321":"[\u6253\u8138]","322":"[\u54c7]","308":"[\u9b3c\u9b42]","309":"[\u5408\u5341]","310":"[\u5f3a\u58ee]","311":"[\u5e86\u795d]","312":"[\u793c\u7269]","209":"[\u7ea2\u5305]"}',true);
         $this->styles = json_decode('{"0":"smiley_0","1":"smiley_1","2":"smiley_2","3":"smiley_3","4":"smiley_4","5":"smiley_5","6":"smiley_6","7":"smiley_7","8":"smiley_8","9":"smiley_9","10":"smiley_10","11":"smiley_11","12":"smiley_12","13":"smiley_13","14":"smiley_14","15":"smiley_15","17":"smiley_17","18":"smiley_18","19":"smiley_19","20":"smiley_20","21":"smiley_21","22":"smiley_22","23":"smiley_23","25":"smiley_25","26":"smiley_26","27":"smiley_27","28":"smiley_28","29":"smiley_29","30":"smiley_30","31":"smiley_31","32":"smiley_32","33":"smiley_33","34":"smiley_34","36":"smiley_36","37":"smiley_37","38":"smiley_38","39":"smiley_39","40":"smiley_40","41":"smiley_41","42":"smiley_42","44":"smiley_44","45":"smiley_45","46":"smiley_46","47":"smiley_47","48":"smiley_48","49":"smiley_49","50":"smiley_50","51":"smiley_51","52":"smiley_52","54":"smiley_54","55":"smiley_55","56":"smiley_56","57":"smiley_57","60":"smiley_60","62":"smiley_62","63":"smiley_63","64":"smiley_64","65":"smiley_65","66":"smiley_66","67":"smiley_67","68":"smiley_68","70":"smiley_70","74":"smiley_74","75":"smiley_75","76":"smiley_76","78":"smiley_78","79":"smiley_79","80":"smiley_80","81":"smiley_81","82":"smiley_82","83":"smiley_83","84":"smiley_84","85":"smiley_85","89":"smiley_89","92":"smiley_92","93":"smiley_93","94":"smiley_94","95":"smiley_95","300":"u1F604","301":"u1F637","302":"u1F602","303":"u1F61D","304":"u1F633","305":"u1F631","306":"u1F614","307":"u1F612","204":"e2_04","205":"e2_05","202":"e2_02","206":"e2_06","212":"e2_12","211":"e2_11","313":"smiley_313","314":"smiley_314","315":"smiley_315","316":"smiley_316","317":"smiley_317","318":"smiley_318","319":"smiley_319","320":"smiley_320","321":"smiley_321","322":"smiley_322","308":"u1F47B","309":"u1F64F","310":"u1F4AA","311":"u1F389","312":"u1F381","209":"e2_09"}',true);
         
@@ -114,6 +118,7 @@ class WebChat extends Component
     public $conversationFirstId = 0;
     public $loadMore = [];
     public function updatedCurrentConversationId($contactId){
+        $this->isThread = true;
         $this->content = ''; //清空内容
         $this->hasNextPage =  true;
         $this->emit('scrollToEnd');

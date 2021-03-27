@@ -55,27 +55,29 @@
             </div>
           </header>
           <main>
-            <ul class="messaging-create-channel__user-results absolute top-9 mt-3 left-10 ml-4">
+            <ul class="messaging-create-channel__user-results absolute top-9 mt-3 left-10 ml-4 w-full">
               <div>
                 @if($search)
-                @forelse ($searchIds as $contactId=>$remark)
-                @php
-                    $defaultAvatar = "https://ui-avatars.com/api/?name={$remark}&color=7F9CF5&background=EBF4FF";
-                @endphp
-                  <div class="messaging-create-channel__user-result"
-                    wire:click="$set('currentConversationId', {{$contactId}})">
-                    <li class="messaging-create-channel__user-result">
-                      <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
-                        <img data-testid="avatar-imgs" src="{{ $contactsArray[$contactId]['smallHead']?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
-                      </div>
-                      <div class="messaging-create-channel__user-result__details">
-                        <span>{{$remark}}</span>
-                      </div>
-                    </li>
-                  </div>
-                @empty
-                    <p>No wechatBotContacts</p>
-                @endforelse
+                  @forelse ($searchIds as $contactId=>$remark)
+                    @php
+                        $defaultAvatar = "https://ui-avatars.com/api/?name={$remark}&color=7F9CF5&background=EBF4FF";
+                    @endphp
+                    <div class="messaging-create-channel__user-result"
+                      wire:click="$set('currentConversationId', {{$contactId}})">
+                      <li class="messaging-create-channel__user-result">
+                        <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
+                          <img data-testid="avatar-imgs" src="{{ $contactsArray[$contactId]['smallHead']?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+                        </div>
+                        <div class="messaging-create-channel__user-result__details">
+                          <span>{{$remark}}</span>
+                        </div>
+                      </li>
+                    </div>
+                  @empty
+                    <div class="messaging-create-channel__user-result empty">
+                        <p>No wechatBotContacts</p>
+                    </div>
+                  @endforelse
                 @endif
               </div>
             </ul>
@@ -297,7 +299,7 @@
           
           <div class="str-chat__messaging-input">
               <div class="messaging-input__button emoji-button" role="button" aria-roledescription="button"
-                wire:click="$toggle('isEmojiPickerOpen')">
+                wire:click="$toggle('isEmojiPicker')">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g><path
                               fill-rule="evenodd"
@@ -345,8 +347,8 @@
                       <path fill-rule="evenodd" clip-rule="evenodd" d="M20 10C20 4.48 15.52 0 10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10ZM6 9H10V6L14 10L10 14V11H6V9Z" fill="white"></path>
                   </svg>
               </div>
-              @if($isEmojiPickerOpen)
-                <div class="str-chat__input--emojipicker">
+              
+                <div class="str-chat__input--emojipicker {{$isEmojiPicker?'':'hidden'}}">
                   <section class="emoji-mart emoji-mart-light" aria-label="Pick your emoji" style="width: 338px;">
                     
                       <div class="emoji-mart-scroll">
@@ -377,19 +379,20 @@
                       </div>
                   </section>
                 </div>            
-              @endif
+              
           </div>
         </div>
       @endif
 
-      @if($isThread)
-        <div class="str-chat__thread" >
+        <div class="str-chat__thread" 
+          style="display: {{$isThread?'':'none'}};">
           <div class="custom-thread-header">
               <div class="custom-thread-header__left">
-                  <p class="custom-thread-header__left-title">Thread</p>
-                  <p class="custom-thread-header__left-count"></p>
+                  <p class="custom-thread-header__left-title">CRM</p>
+                  <p class="custom-thread-header__left-count">todo Thread</p>
               </div>
-              <svg wire:click="$toggle('isThread')" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="cursor: pointer; margin-right: 10px;">
+              <div wire:click="$toggle('isThread')" >
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="cursor: pointer; margin-right: 10px;">
                   <path d="M0 20C0 8.95431 8.95431 0 20 0C31.0457 0 40 8.95431 40 20C40 31.0457 31.0457 40 20 40C8.95431 40 0 31.0457 0 20Z" fill="#3E3E41"></path>
                   <path
                       fill-rule="evenodd"
@@ -398,6 +401,7 @@
                       fill="#E9E9EA"
                   ></path>
               </svg>
+              </div>
           </div>
           <div class="str-chat__thread-list">
               <div class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text">
@@ -468,39 +472,11 @@
               </div>
           </div>
         </div>
-      @endif
 
     </div>
   </div>
 
 </div>
-
-<style>
-
-  @media screen and (max-width: 640px) {
-    .messaging__channel-header__avatars {
-      margin-left: 10px;
-    }
-    .str-chat-channel .str-chat__container{
-      padding: 0;
-    }
-    .messaging.str-chat .str-chat__thread{
-      display: none;
-    }
-  }
-  .messaging__channel-list__header__name-2{
-    color: #999;
-  }
-
-  .str-chat__list{
-    scroll-behavior: smooth;
-  }
-
-  .e2_02,.e2_04,.e2_05,.e2_06,.e2_09,.e2_11,.e2_12,.e2_14,.smiley_0,.smiley_1,.smiley_10,.smiley_11,.smiley_12,.smiley_13,.smiley_14,.smiley_15,.smiley_17,.smiley_18,.smiley_19,.smiley_2,.smiley_20,.smiley_21,.smiley_22,.smiley_23,.smiley_25,.smiley_26,.smiley_27,.smiley_28,.smiley_29,.smiley_3,.smiley_30,.smiley_31,.smiley_313,.smiley_314,.smiley_315,.smiley_316,.smiley_317,.smiley_318,.smiley_319,.smiley_32,.smiley_320,.smiley_321,.smiley_322,.smiley_33,.smiley_34,.smiley_36,.smiley_37,.smiley_38,.smiley_39,.smiley_4,.smiley_40,.smiley_41,.smiley_42,.smiley_44,.smiley_45,.smiley_46,.smiley_47,.smiley_48,.smiley_49,.smiley_5,.smiley_50,.smiley_51,.smiley_52,.smiley_54,.smiley_55,.smiley_56,.smiley_57,.smiley_6,.smiley_60,.smiley_61,.smiley_62,.smiley_63,.smiley_64,.smiley_65,.smiley_66,.smiley_67,.smiley_68,.smiley_7,.smiley_70,.smiley_74,.smiley_75,.smiley_76,.smiley_78,.smiley_79,.smiley_8,.smiley_80,.smiley_81,.smiley_82,.smiley_83,.smiley_84,.smiley_85,.smiley_89,.smiley_9,.smiley_92,.smiley_93,.smiley_94,.smiley_95,.u1F381,.u1F389,.u1F47B,.u1F4AA,.u1F602,.u1F604,.u1F612,.u1F614,.u1F61D,.u1F631,.u1F633,.u1F637,.u1F64F{display:inline-block;background-repeat:no-repeat}.e2_02{width:64px;height:64px;background-position:-66px 0}.e2_04{width:64px;height:64px;background-position:-462px -396px}.e2_05{width:64px;height:64px;background-position:0 -66px}.e2_06{width:64px;height:64px;background-position:-66px -66px}.e2_09{width:64px;height:64px;background-position:-132px 0}.e2_11{width:64px;height:64px;background-position:-132px -66px}.e2_12{width:64px;height:64px;background-position:0 -132px}.e2_14{width:64px;height:64px;background-position:-66px -132px}.smiley_0{width:64px;height:64px;background-position:-132px -132px}.smiley_1{width:63px;height:64px;background-position:-660px -594px}.smiley_10{width:64px;height:64px;background-position:-198px -66px}.smiley_11{width:64px;height:64px;background-position:-198px -132px}.smiley_12{width:64px;height:64px;background-position:0 -198px}.smiley_13{width:64px;height:64px;background-position:-66px -198px}.smiley_14{width:64px;height:64px;background-position:-132px -198px}.smiley_15{width:64px;height:64px;background-position:-198px -198px}.smiley_17{width:64px;height:64px;background-position:-264px 0}.smiley_18{width:64px;height:64px;background-position:-264px -66px}.smiley_19{width:64px;height:64px;background-position:-264px -132px}.smiley_2{width:64px;height:64px;background-position:-264px -198px}.smiley_20{width:64px;height:64px;background-position:0 -264px}.smiley_21{width:64px;height:64px;background-position:-66px -264px}.smiley_22{width:64px;height:64px;background-position:-132px -264px}.smiley_23{width:64px;height:64px;background-position:-198px -264px}.smiley_25{width:64px;height:64px;background-position:-264px -264px}.smiley_26{width:64px;height:64px;background-position:-330px 0}.smiley_27{width:64px;height:64px;background-position:-330px -66px}.smiley_28{width:64px;height:64px;background-position:-330px -132px}.smiley_29{width:64px;height:64px;background-position:-330px -198px}.smiley_3{width:64px;height:64px;background-position:-330px -264px}.smiley_30{width:64px;height:64px;background-position:0 -330px}.smiley_31{width:64px;height:64px;background-position:-66px -330px}.smiley_313{width:64px;height:64px;background-position:-132px -330px}.smiley_314{width:64px;height:64px;background-position:-198px -330px}.smiley_315{width:64px;height:64px;background-position:-264px -330px}.smiley_316{width:64px;height:64px;background-position:-330px -330px}.smiley_317{width:64px;height:64px;background-position:-396px 0}.smiley_318{width:64px;height:64px;background-position:-396px -66px}.smiley_319{width:64px;height:64px;background-position:-396px -132px}.smiley_32{width:64px;height:64px;background-position:-396px -198px}.smiley_320{width:64px;height:64px;background-position:-396px -264px}.smiley_321{width:64px;height:64px;background-position:-396px -330px}.smiley_322{width:64px;height:64px;background-position:0 -396px}.smiley_33{width:64px;height:64px;background-position:-66px -396px}.smiley_34{width:64px;height:64px;background-position:-132px -396px}.smiley_36{width:64px;height:64px;background-position:-198px -396px}.smiley_37{width:64px;height:64px;background-position:-264px -396px}.smiley_38{width:64px;height:64px;background-position:-330px -396px}.smiley_39{width:64px;height:64px;background-position:-396px -396px}.smiley_4{width:64px;height:64px;background-position:-462px 0}.smiley_40{width:64px;height:64px;background-position:-462px -66px}.smiley_41{width:64px;height:64px;background-position:-462px -132px}.smiley_42{width:64px;height:64px;background-position:-462px -198px}.smiley_44{width:64px;height:64px;background-position:-462px -264px}.smiley_45{width:64px;height:64px;background-position:-462px -330px}.smiley_46{width:64px;height:64px;background-position:0 0}.smiley_47{width:64px;height:64px;background-position:0 -462px}.smiley_48{width:64px;height:64px;background-position:-66px -462px}.smiley_49{width:64px;height:64px;background-position:-132px -462px}.smiley_5{width:64px;height:64px;background-position:-198px -462px}.smiley_50{width:64px;height:64px;background-position:-264px -462px}.smiley_51{width:64px;height:64px;background-position:-330px -462px}.smiley_52{width:64px;height:64px;background-position:-396px -462px}.smiley_54{width:64px;height:64px;background-position:-462px -462px}.smiley_55{width:64px;height:64px;background-position:-528px 0}.smiley_56{width:64px;height:64px;background-position:-528px -66px}.smiley_57{width:64px;height:64px;background-position:-528px -132px}.smiley_6{width:64px;height:64px;background-position:-528px -198px}.smiley_60{width:64px;height:64px;background-position:-528px -264px}.smiley_61{width:64px;height:64px;background-position:-528px -330px}.smiley_62{width:64px;height:64px;background-position:-528px -396px}.smiley_63{width:64px;height:64px;background-position:-528px -462px}.smiley_64{width:64px;height:64px;background-position:0 -528px}.smiley_65{width:64px;height:64px;background-position:-66px -528px}.smiley_66{width:64px;height:64px;background-position:-132px -528px}.smiley_67{width:64px;height:64px;background-position:-198px -528px}.smiley_68{width:64px;height:64px;background-position:-264px -528px}.smiley_7{width:64px;height:64px;background-position:-330px -528px}.smiley_70{width:64px;height:64px;background-position:-396px -528px}.smiley_74{width:64px;height:64px;background-position:-462px -528px}.smiley_75{width:64px;height:64px;background-position:-528px -528px}.smiley_76{width:64px;height:64px;background-position:-594px 0}.smiley_78{width:64px;height:64px;background-position:-594px -66px}.smiley_79{width:64px;height:64px;background-position:-594px -132px}.smiley_8{width:64px;height:64px;background-position:-594px -198px}.smiley_80{width:64px;height:64px;background-position:-594px -264px}.smiley_81{width:64px;height:64px;background-position:-594px -330px}.smiley_82{width:64px;height:64px;background-position:-594px -396px}.smiley_83{width:64px;height:64px;background-position:-594px -462px}.smiley_84{width:64px;height:64px;background-position:-594px -528px}.smiley_85{width:64px;height:64px;background-position:0 -594px}.smiley_89{width:64px;height:64px;background-position:-66px -594px}.smiley_9{width:64px;height:64px;background-position:-132px -594px}.smiley_92{width:64px;height:64px;background-position:-198px -594px}.smiley_93{width:64px;height:64px;background-position:-264px -594px}.smiley_94{width:64px;height:64px;background-position:-330px -594px}.smiley_95{width:64px;height:64px;background-position:-396px -594px}.u1F381{width:64px;height:64px;background-position:-462px -594px}.u1F389{width:64px;height:64px;background-position:-528px -594px}.u1F47B{width:64px;height:64px;background-position:-594px -594px}.u1F4AA{width:64px;height:64px;background-position:-660px 0}.u1F602{width:64px;height:64px;background-position:-660px -66px}.u1F604{width:64px;height:64px;background-position:-660px -132px}.u1F612{width:64px;height:64px;background-position:-660px -198px}.u1F614{width:64px;height:64px;background-position:-660px -264px}.u1F61D{width:64px;height:64px;background-position:-660px -330px}.u1F631{width:64px;height:64px;background-position:-660px -396px}.u1F633{width:64px;height:64px;background-position:-660px -462px}.u1F637{width:64px;height:64px;background-position:-198px 0}.u1F64F{width:64px;height:64px;background-position:-660px -528px}.weui-emotion_list{padding:0 10px;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;height:100%;-webkit-box-sizing:border-box;box-sizing:border-box;white-space:normal;font-size:0}.weui-emotion_item{display:inline-block;position:relative;width:40px;height:40px;padding-bottom:5px;line-height:40px}.weui-icon_emotion{position:absolute;top:4px;left:4px;display:inline-block;transform-origin:0 0;transform:scale(.5)}.weui-emotion_head{margin:14px 5px 8px;color:#000;font-size:14px;text-align:left}.weui-emoji_area{position:relative;width:100%}.weui-emoji_area__has-safe-bottom{padding-bottom:34px}.weui-emotion_del_btn{display:inline-block;width:24px;height:24px;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%)}.weui-emoji__operation{position:absolute;bottom:34px;right:12px;width:120px;height:44px;display:flex;align-items:center;justify-content:flex-end}.weui-emoji__operation__delete,.weui-emoji__operation__send{display:inline-block;width:56px;height:44px;line-height:44px;text-align:center;border-radius:4px;font-size:16px}.weui-emoji__operation__delete{position:relative;font-size:0;background-color:rgba(255, 255, 255)}.weui-emoji__operation__send{margin-left:8px;background-color:#04C160;color:rgba(255,255,255,0.9)}
-  #wxemoji .bg-icons{
-    background-image: url(https://res.wx.qq.com/op_res/eROMsLpnNC10dC40vzF8qviz63ic7ATlbGg20lr5pYykOwHRbLZFUhgg23RtVorX);
-  }
-</style>
 
 <script>
   document.addEventListener('livewire:load', function () {

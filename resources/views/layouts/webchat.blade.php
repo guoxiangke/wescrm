@@ -10,8 +10,6 @@
 
         <!-- Webchat Styles -->
         <link rel="stylesheet" href="{{ mix('css/webchat.css') }}">
-        <link rel="stylesheet" href="{{ mix('css/CreateChannel.css') }}">
-        <link rel="stylesheet" href="{{ mix('css/MessagingChannelHeader.css') }}">
         
         <!-- Styles -->
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
