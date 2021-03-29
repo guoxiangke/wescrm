@@ -140,7 +140,16 @@ class WeijuController extends Controller
                         Log::debug(__METHOD__, ['XML消息', '小程序', $msg['appmsg']['title'],$msg['appmsg']['sourcedisplayname']]);
                         # TODO code...// appmsg.type = 33;
                         break;
-                    
+                    case '6': //文件
+                        $content['title'] = $msg['appmsg']['title'];
+                        $content['totallen'] = $msg['appmsg']['appattach']['totallen'];
+                        $content['fileext'] = $msg['appmsg']['appattach']['fileext'];
+                        $content['md5'] = $msg['appmsg']['md5'];
+                        
+                        Log::debug(__METHOD__, ['XML消息', "文件",  $request['message']]);
+                        // info($content);
+                        //$wechatMessage['content'] = ['content' => $text];
+                        break;
                     default:
                         Log::error(__METHOD__, ['XML消息', '未处理', $appmsgType]);
                         break;
@@ -163,6 +172,17 @@ class WeijuController extends Controller
                     $text = "{$msg['@attributes']['fromnickname']}({$msg['@attributes']['fromusername']})向您发送好友请求\r\n请求信息：{$msg['@attributes']['content']}";
                     $wechatMessage['content'] = ['content' => $text];
                     Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
+                    break;
+                
+                case '47': //emoji
+                    $msg = $msg['emoji'];
+                    $content['type'] = $msg['@attributes']['type']; //? 'type' => '2',
+                    $content['content'] = $msg['@attributes']['cdnurl'];
+                    $content['md5'] = $msg['@attributes']['md5'];
+                    $content['len'] = $msg['@attributes']['len'];
+                    $content['width'] = $msg['@attributes']['width'];
+                    $content['height'] = $msg['@attributes']['height'];
+                    $wechatMessage['content'] = $content;
                     break;
                 default:
                     Log::debug(__METHOD__, ['<msg开头信息', "待处理", $wechatMessage['msgType'], $request['message']]);
@@ -279,8 +299,8 @@ class WeijuController extends Controller
             $response = $wechatBot->wechat->saveAttachmentResponse($wechatMessage['msgType'], $wechatMessage['msgId'], $wechatMessage['fromUser'], $wechatMessage['content']);
             
             if($response->ok() && $response->json('code') === 1000){
-                $data = str_replace('http:', 'https:', $response->json('data'));
-                $wechatMessage['content'] = compact('data');
+                $content['content'] = str_replace('http:', 'https:', $response->json('data'));
+                $wechatMessage['content'] = $content;
                 // TODO 下载到本地，给出md5
                 // $str = md5(Storage::get('wechat/87035.jpg')); //3d1e734982e6c18a65c88dd34eac4d96
                 // $str = Storage::size('wechat/87035.jpg');
@@ -301,7 +321,7 @@ class WeijuController extends Controller
         // TODO check 且不是群
         if($wechatBot->getMeta('wechatAutoReply', false) && $wechatMessage['msgType'] == WechatMessage::MSG_TYPES['text']) {
             $keywords = $wechatBot->autoReplies()->pluck('keyword','wechat_content_id');
-            $to = [$wechatMessage['sendUser']];
+            $to = [$wechatMessage['sendUser']]; // TODO 传 WechatContact Obj
             foreach ($keywords as $id => $keyword) {
                 if(Str::is($keyword, $rawContent)){
                     // TODO preg;

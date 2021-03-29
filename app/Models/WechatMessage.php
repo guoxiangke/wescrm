@@ -46,6 +46,7 @@ class WechatMessage extends Model
     // Attachment
     const ATTACHMENY_MSG_TYPES = [
         3, // Img
+        6, // File文件
         34, // Voice? no data?
         43, // Video
         49, // 文件 49 点击▶️收听
@@ -69,8 +70,9 @@ class WechatMessage extends Model
         'template'=>1, //发送带模版的文本 @see WechatBot::send(167)
         'image'=>3, // Img
         'url'=>5,// 5表示链接，
+        'file'=>6,// 6表示文件
         'roomChatRecords'=>19,// 19表示群聊的聊天记录，
-        'voice'=>34, // Voice? no data?
+        'voice'=>34, // Voice
         'requestFriend' => 37,
         // 收到好友请求
             // "msgType":37 "messageType":2  <msg encryptusername="v3_xx@stranger" ticket="v4_xxx@stranger"  fromnickname=\"天空蔚蓝\" content=\"你好\"
