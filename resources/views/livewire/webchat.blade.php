@@ -298,7 +298,7 @@
           </div>
           
           <div class="str-chat__messaging-input">
-              <div class="messaging-input__button emoji-button" role="button" aria-roledescription="button"
+              <div class="messaging-input__button emoji-button {{ $isEmojiPicker?'active':'' }}" role="button" aria-roledescription="button"
                 wire:click="$toggle('isEmojiPicker')">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g><path
@@ -335,9 +335,13 @@
 
                       <div class="rta str-chat__textarea">
                         <textarea
+                          x-on:change="console.log($event.target.value.trim().length)"
+                          id="input-textarea"
                           wire:model.debounce.3000ms="content" 
                           wire:keydown.enter.prevent="send"
-                          rows="1" placeholder="Send a message" class="rta__textarea str-chat__textarea__textarea" spellcheck="false" style="height: 38px !important;"></textarea>
+                          wire:click.prevent="$set('isEmojiPicker', false)"
+                          rows="1" placeholder="Send a message" 
+                          class="rta__textarea str-chat__textarea__textarea" spellcheck="false" style="height: 38px !important;"></textarea>
                       </div>
                   </div>
               </div>
@@ -478,6 +482,15 @@
 
 </div>
 
+<style>
+  .messaging-input__button.active {
+      opacity: 1;
+  }
+
+  .messaging-input__button.active svg path {
+      fill: #005fff!important
+  }
+</style>
 <script>
   document.addEventListener('livewire:load', function () {
     Livewire.on('scrollToEnd', () => {

@@ -96,6 +96,7 @@ class WebChat extends Component
     // $wxid or $wxids
     public function send()
     {
+        if(trim($this->content)=='') return; //TODO 空消息 不提交
         $conversations = $this->wechatMessages;
 
         if($this->currentConversationId){
@@ -113,12 +114,13 @@ class WebChat extends Component
         // array_unshift($this->conversations[$wechatMessage->conversation], $wechatMessage);
         // $this->messages->prepend($wechatMessage);
         $this->content = '';
+        $this->isEmojiPicker = false;
     }
 
     public $conversationFirstId = 0;
     public $loadMore = [];
     public function updatedCurrentConversationId($contactId){
-        $this->isThread = true;
+        $this->isThread = false;
         $this->content = ''; //清空内容
         $this->hasNextPage =  true;
         $this->emit('scrollToEnd');
@@ -259,7 +261,7 @@ class WebChat extends Component
                 // $messages = $this->wechatMessages->merge($messages);
                 $messages->each(function($message) {
                     $old = $this->wechatMessages[$message->conversation]??[];
-                    array_unshift($old, $message->toArray());
+                    array_push($old, $message->toArray());
                     $this->wechatMessages[$message->conversation] = $old;
                     if($this->currentConversationId == $message->conversation){
                         $this->emit('scrollToEnd');
