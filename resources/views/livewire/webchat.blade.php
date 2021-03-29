@@ -239,13 +239,48 @@
                       </div>
 
                     @php
+                      $content = $message['content']['content']??'暂未处理消息';
                       // TODO   处理 content   
                     @endphp
                     <div data-testid="message-inner" class="str-chat__message-inner">
                       <div class="str-chat__message-text">
-                        <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
-                          <p>{{$message['content']['content']??'暂未处理消息'}}</p>
-                        </div>
+                        @switch($message['msgType'])
+                            @case(3)
+                                <div class="str-chat__message-attachment str-chat__message-attachment--image str-chat__message-attachment--image str-chat__message-attachment--image--">
+                                  <img class="str-chat__message-attachment--img" src="{{ $content }}" data-testid="image-test">
+                                </div>
+                                @break
+                            @case(47)
+                                <div class="str-chat__message-attachment str-chat__message-attachment--image str-chat__message-attachment--image str-chat__message-attachment--image--">
+                                  <img style="max-height: 100px;" src="{{ $content }}" data-testid="image-test">
+                                </div>
+                                @break
+                            @case(34)
+                                <audio class='audio' controls src='{{ $content }}' controlslist="nodownload" />
+                                @break
+                            @case(49)
+                                <div class="str-chat__message-attachment str-chat__message-attachment--file str-chat__message-attachment--file str-chat__message-attachment--file--">
+                                  <div data-testid="attachment-file" class="str-chat__message-attachment-file--item">
+                                    <svg viewBox="0 0 48 48" width="30" height="30" style="max-width: 100%;"><defs><clipPath id="pageRadius2"><rect x="4" y="0" rx="4" ry="4" width="40" height="48"></rect></clipPath><clipPath id="foldCrop"><rect width="40" height="12" transform="rotate(-45 0 12)"></rect></clipPath><linearGradient x1="100%" y1="0%" y2="100%" id="pageGradient2"><stop stop-color="white" stop-opacity="0.25" offset="0%"></stop><stop stop-color="white" stop-opacity="0" offset="66.67%"></stop></linearGradient></defs><g id="file" clip-path="url(#pageRadius2)"><path d="M4 0 h 28 L 44 12 v 36 H 4 Z" fill="whitesmoke"></path><path d="M4 0 h 28 L 44 12 v 36 H 4 Z" fill="url(#pageGradient2)"></path></g><g transform="translate(32 12) rotate(-90)"><rect width="40" height="48" fill="#dbdbdb" rx="4" ry="4" clip-path="url(#foldCrop)"></rect></g><g id="label"><rect fill="#a8a8a8" x="4" y="34" width="40" height="14" clip-path="url(#pageRadius2)"></rect></g><g id="labelText" transform="translate(4 34)">
+                                      <text x="20" y="10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="9" fill="white" text-anchor="middle" style="font-weight: bold; text-align: center; pointer-events: none; text-transform: none; user-select: none;">
+                                        {{$message['content']['fileext']}}
+                                      </text></g>
+                                    </svg>
+                                    <div class="str-chat__message-attachment-file--item-text">
+                                      <a href="{{$message['content']['content']}}&ext={{$message['content']['fileext']}}" target="_blank">{{$message['content']['title']}}</a>
+                                      <span>{{$message['content']['totallen']/1000}} kB</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                @break
+                                
+                            @default
+                              <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
+                                <p>{{ $content }}</p>
+                              </div>
+                        @endswitch
+
+
                         <div data-testid="message-options" class="str-chat__message-simple__actions">
                           <div data-testid="message-reaction-action" class="str-chat__message-simple__actions__action str-chat__message-simple__actions__action--reactions">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
@@ -489,6 +524,10 @@
 
   .messaging-input__button.active svg path {
       fill: #005fff!important
+  }
+
+  .audio{
+    height: 30px;
   }
 </style>
 <script>
