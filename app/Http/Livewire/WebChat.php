@@ -235,7 +235,7 @@ class WebChat extends Component
     
     public function getConversations(){
         if($this->maxMessageId!=0){
-            Log::debug(__METHOD__, ['refresh', "maxMessageId:{$this->maxMessageId}", ]);
+            // Log::debug(__METHOD__, ['refresh', "maxMessageId:{$this->maxMessageId}", ]);
             $messages = WechatMessage::where('id', '>', $this->maxMessageId)
                 ->where('wechat_bot_id', $this->wechatBot->id)
                 ->get();
@@ -287,7 +287,7 @@ class WebChat extends Component
             // search
             $this->updatedSearch();
         }
-        Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages)]);
+        // Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages)]);
         return $this->wechatMessages;
     }
     public function render()

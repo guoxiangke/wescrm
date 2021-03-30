@@ -119,6 +119,7 @@ class WechatBot extends Model
         $typeName = WechatContent::TYPES[$typeId];
         $sendType = Str::camel("send_{$typeName}");//sendImage  sendText sendVideo sendCard sendUrl .strtoupper
         
+        // TODO tos Array or WechatContact obj
         foreach ($tos as $wxid) {
             if($typeName == 'template'){
                 // 可用变量替换

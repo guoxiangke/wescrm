@@ -129,8 +129,10 @@ class WeijuController extends Controller
         $appmsgType = "init";
         if(Str::startsWith($wechatMessage['content'], '<?xml ')) {
             $msg = xStringToArray($wechatMessage['content']);
+            
             if(Arr::has($msg, 'appmsg.type')){
                 $appmsgType = $msg['appmsg']['type'];
+                $content['type'] = $appmsgType;
                 switch ($appmsgType) {
                     case '3':
                         Log::debug(__METHOD__, ['XML消息', '音频：点击▶️收听', $msg['appmsg']['title'], $msg['appmsg']['url']]);
@@ -138,6 +140,10 @@ class WeijuController extends Controller
                         break;
                     case '33':
                         Log::debug(__METHOD__, ['XML消息', '小程序', $msg['appmsg']['title'],$msg['appmsg']['sourcedisplayname']]);
+                        # TODO code...// appmsg.type = 33;
+                        break;
+                    case '43': //mp4视频
+                        Log::debug(__METHOD__, ['XML消息', 'mp4视频', $msg]);
                         # TODO code...// appmsg.type = 33;
                         break;
                     case '6': //文件
@@ -150,17 +156,48 @@ class WeijuController extends Controller
                         // info($content);
                         //$wechatMessage['content'] = ['content' => $text];
                         break;
+                    
+                    case '19': //群聊的聊天记录
+                        $items = xStringToArray($msg['appmsg']['recorditem']);
+                        $content['title'] = $items['title'];
+                        $content['desc'] = $items['desc'];
+                        $content['url'] = $msg['appmsg']['url'];
+                        foreach ($items['datalist']['dataitem'] as  $item) {
+                            $dataitem['name'] = $item['sourcename'];
+                            $dataitem['time'] = $item['sourcetime'];
+                            $dataitem['wxid'] = $item['dataitemsource']['realchatname']??'';
+                            $dataitem['desc'] = $item['datadesc'];
+                            $content['dataitems'][] = $dataitem;
+                        }
+                        break;
                     default:
                         Log::error(__METHOD__, ['XML消息', '未处理', $appmsgType]);
                         break;
                 }
-            }else{
+            }elseif(Arr::has($msg, 'videomsg')){
+                $content['length'] = $msg['videomsg']['@attributes']['length'];
+                $content['playlength'] = $msg['videomsg']['@attributes']['playlength'];
+                $content['md5'] = $msg['videomsg']['@attributes']['md5'];
+                $content['fromusername'] = $msg['videomsg']['@attributes']['fromusername'];
+                Log::debug(__METHOD__, ['XML消息', "视频消息", $content]);
+            }
+            else{
                 Log::debug(__METHOD__, ['XML消息', "待处理", $request['message']]);
             }
         }elseif(Str::startsWith($wechatMessage['content'], '<msg')){
             $msg = xStringToArray($wechatMessage['content']);
+            
             switch ($wechatMessage['msgType']) {
-                case '37':
+                case '3': //image
+                    Log::debug(__METHOD__, ['<msg消息', '收到图片']);
+                    break;
+                case '34': //Voice
+                    Log::debug(__METHOD__, ['<msg消息', '收到语音']);
+                    $msg = $msg['voicemsg'];
+                    $content['voicelength'] = $msg['@attributes']['voicelength'];
+                    $content['length'] = $msg['@attributes']['length'];
+                    break;
+                case '37': //向您发送好友请求
                     // $msg['@attributes'] 字段
                         // bigheadimgurl 
                         // smallheadimgurl
@@ -175,6 +212,7 @@ class WeijuController extends Controller
                     break;
                 
                 case '47': //emoji
+                    Log::debug(__METHOD__, ['<msg消息', '收到emoji']);
                     $msg = $msg['emoji'];
                     $content['type'] = $msg['@attributes']['type']; //? 'type' => '2',
                     $content['content'] = $msg['@attributes']['cdnurl'];
@@ -183,6 +221,9 @@ class WeijuController extends Controller
                     $content['width'] = $msg['@attributes']['width'];
                     $content['height'] = $msg['@attributes']['height'];
                     $wechatMessage['content'] = $content;
+                    break;
+                case '49': //2.我要歌颂，我要赞美.mp3
+                    Log::debug(__METHOD__, ['<msg消息', '收到mp3文件']);
                     break;
                 default:
                     Log::debug(__METHOD__, ['<msg开头信息', "待处理", $wechatMessage['msgType'], $request['message']]);
@@ -292,15 +333,18 @@ class WeijuController extends Controller
             
         $rawContent = $wechatMessage['content']; //keep rawContent in $content
         $needSave = false;
-        // TODO 49 点击▶️收听， 不需要下载 !in_array($appmsgType,[3,33])
+        // TODO do in queue! 49 点击▶️收听， 不需要下载 !in_array($appmsgType,[3,33])
         if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES) && !in_array($appmsgType,[3,33])){
             $needSave = true;
             // 下载 文件更新 content为链接
             $response = $wechatBot->wechat->saveAttachmentResponse($wechatMessage['msgType'], $wechatMessage['msgId'], $wechatMessage['fromUser'], $wechatMessage['content']);
             
             if($response->ok() && $response->json('code') === 1000){
+                // TODO load in upyun!
+                // $content['content'] = str_replace('http://wx-bbaos.oss-cn-shenzhen.aliyuncs.com', 'https://silk.yongbuzhixi.com', $response->json('data'));
                 $content['content'] = str_replace('http:', 'https:', $response->json('data'));
                 $wechatMessage['content'] = $content;
+                Log::debug(__METHOD__,['消息下载成功', $response->json()]);
                 // TODO 下载到本地，给出md5
                 // $str = md5(Storage::get('wechat/87035.jpg')); //3d1e734982e6c18a65c88dd34eac4d96
                 // $str = Storage::size('wechat/87035.jpg');

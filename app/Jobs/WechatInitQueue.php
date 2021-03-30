@@ -25,7 +25,8 @@ class WechatInitQueue implements ShouldQueue
 
     private String $wId;
     private Team $team;
-    public $timeout = 300; // 5分钟 php artisan queue:listen --timeout=300
+    public $tries = 2;
+    public $timeout = 900; // 15分钟 php artisan queue:listen --timeout=300
     private String $terminateKey; // 一旦进入初始化，不要终止！ // 和当前操作 微信登录的用户ID 相关！
 
     /**
