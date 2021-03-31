@@ -263,8 +263,9 @@
                                 @break
                             @case(49)
                                 @if(isset($message['content']['fileext']) && $message['content']['fileext']=='mp3')
-                                <audio class='audio' controls src='{{$content}}?ext=.mp3' controlslist="nodownload" />
-                                @else
+                                  <audio class='audio' controls src='{{$content}}?ext=.mp3' controlslist="nodownload" />
+                                  @break
+                                @endif
                                 <div class="str-chat__message-attachment str-chat__message-attachment--file str-chat__message-attachment--file str-chat__message-attachment--file--">
                                   <div data-testid="attachment-file" class="str-chat__message-attachment-file--item">
                                     @isset($message['content']['fileext'])
@@ -275,14 +276,13 @@
                                     </svg>
                                     @endisset
                                     <div class="str-chat__message-attachment-file--item-text">
-                                      <a href="{{$content}}?ext={{$message['content']['fileext']??'unknown'}}" target="_blank">{{$message['content']['title']}}</a>
+                                      <a href="{{$content}}?ext={{$message['content']['fileext']??'unknown'}}" target="_blank">{{$message['content']['title']??'unknown'}}</a>
                                       @isset($message['content']['totallen'])
                                       <span>{{$message['content']['totallen']/1000}} kB</span>
                                       @endisset
                                     </div>
                                   </div>
                                 </div>
-                                @endif
                                 @break
                                 
                             @default

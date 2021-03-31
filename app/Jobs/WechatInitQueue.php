@@ -16,7 +16,6 @@ use App\Models\WechatBot;
 use App\Models\WechatBotContact;
 use App\Models\WechatContact;
 use Illuminate\Support\Arr;
-use phpDocumentor\Reflection\Types\Integer;
 
 // Init login of a wechatBot
 class WechatInitQueue implements ShouldQueue
