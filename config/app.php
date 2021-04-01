@@ -2,6 +2,9 @@
 
 return [
 
+    // https://laravel.com/docs/8.x/mix#custom-mix-base-urls
+    'mix_url' => env('MIX_ASSET_URL', null),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

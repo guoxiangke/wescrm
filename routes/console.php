@@ -22,6 +22,6 @@ Artisan::command('cc', function () {
     $this->call('clear-compiled');
     $this->call('config:clear');
     $this->call('cache:clear');
-    $this->call('route:clear');
     $this->call('view:clear');
+    $this->call('route:cache');
 })->describe('clear cache');
