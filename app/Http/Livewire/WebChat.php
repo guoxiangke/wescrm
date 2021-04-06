@@ -11,7 +11,7 @@ use App\Models\WechatContent;
 use App\Models\WechatMessage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-
+use Livewire\WithFileUploads;
 
 class WebChat extends Component
 {
@@ -80,13 +80,13 @@ class WebChat extends Component
         // dd($this->conversations);
         $this->isDarkUi = $this->user->getMeta('isDarkUi', false);
         $this->emojis = ['👍🏼','👎','✌','🤝','💪','✊','🙏','👌','👋','🤟','😀','😂','🤫','😵','🤗','😘','😍','🥺','😆','😅','😥','😓','😐','🤭','🤥','😱','😷','😠','🤕','😲','😔','😗','😝','🙇','🧧','💔','🍉','☕','🍺','🐞','🎉','🎁','👻'];
-        
+        $this->attach = false;
     }
     public function insertEmoji($emoji)
     {   
         $this->content .= $emoji;
     }
-    public function updated($name,$value)
+    public function updated($name, $value)
     {
         if(in_array($name,['isDarkUi'])){
             $this->user->setMeta($name, $value);
@@ -96,26 +96,61 @@ class WebChat extends Component
     // $wxid or $wxids
     public function send()
     {
-        if(trim($this->content)=='') return; //TODO 空消息 不提交
         $conversations = $this->wechatMessages;
-
         if($this->currentConversationId){
-            $wxids = $this->contacts[current($conversations[$this->currentConversationId])['conversation']]['userName'];
+            $wxid = $this->contacts[current($conversations[$this->currentConversationId])['conversation']]['userName'];
         }
         
+        if($this->file){ //begin发送文件
+            // new temp wechatContent for send;
+            $wechatContent = new WechatContent([
+                'name' => 'send Attachment',
+                'wechat_bot_id' => $this->wechatBot->id,
+            ]);
+            // $type = $this->file->getMimeType();
+            $extension = pathinfo($this->file->getFilename(), PATHINFO_EXTENSION);
+            if (in_array($extension, ['png', 'jpeg', 'jpg', 'gif'])) {
+                $wechatContent->type = WechatContent::TYPE_IMAGE;
+                $wechatContent->content = ['data'=>[
+                    'content'=> $this->file->temporaryUrl()
+                ]];
+            }
+            if (in_array($extension, ['mp4'])) {
+                $wechatContent->type = WechatContent::TYPE_VIDEO;
+                $wechatContent->content = ['data'=>[
+                    'path'=> $this->file->temporaryUrl(),
+                    'thumbPath'=> 'https://www-static.qbox.me/_next/static/media/banner.62cd5d22423097531dfdc2223bbc4c97.png',
+                ]];
+            }
+            $this->wechatBot->send((array)$wxid, $wechatContent);
+            $this->reset('file');
+        }// end发送文件
+
+        if(trim($this->content)=='') return; //TODO 空消息 不提交
         $data = ['content'=>$this->content];
         $content = compact('data');
         $this->editing->content = $content;
-        $this->wechatBot->send((array)$wxids, $this->editing);
+        $this->wechatBot->send((array)$wxid, $this->editing);
 
         $this->emit('refreshSelf');
-
-        //$wechatMessage = $this->wechatBot->send((array)$wxids, $this->editing);
-        // array_unshift($this->conversations[$wechatMessage->conversation], $wechatMessage);
-        // $this->messages->prepend($wechatMessage);
+        
         $this->content = '';
         $this->isEmojiPicker = false;
     }
+
+    use WithFileUploads;
+    public $file;
+    public $attach;
+    public function updatedFile($value){
+        $this->validate([
+            'file' => 'mimes:jpg,png,jpeg,gif,mp4|max:64',
+        ]);
+        $this->attach = $value->getClientOriginalName();
+    }
+    public function resetFile(){
+        $this->reset('file');
+    }
+    
 
     public $conversationFirstId = 0;
     public $loadMore = [];

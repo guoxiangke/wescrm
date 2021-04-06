@@ -344,6 +344,23 @@
           </div>
           
           <div class="str-chat__messaging-input">
+            <div  style="position: absolute; top: -30%; left: 45%; transform: translate(-50%, -50%); z-index: 999;">
+              <div wire:loading wire:target="file">文件上传中...</div>
+              @if($file)
+              <p>
+                {{$attach}}
+                <span wire:click="resetFile">
+                  <svg style="display:inline; cursor: pointer; margin-right: 10px;" width="20" height="20" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 20C0 8.95431 8.95431 0 20 0C31.0457 0 40 8.95431 40 20C40 31.0457 31.0457 40 20 40C8.95431 40 0 31.0457 0 20Z" fill="#005fff"></path>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M27.5625 25.4416L22.1208 20L27.5625 14.5583C28.15 13.9708 28.15 13.025 27.5625 12.4375C26.975 11.85 26.0291 11.85 25.4416 12.4375L20 17.8791L14.5583 12.4375C13.9708 11.85 13.025 11.85 12.4375 12.4375C11.85 13.025 11.85 13.9708 12.4375 14.5583L17.8791 20L12.4375 25.4416C11.85 26.0291 11.85 26.975 12.4375 27.5625C13.025 28.15 13.9708 28.15 14.5583 27.5625L20 22.1208L25.4416 27.5625C26.0291 28.15 26.975 28.15 27.5625 27.5625C28.1458 26.975 28.1458 26.025 27.5625 25.4416Z" fill="#E9E9EA"></path>
+                  </svg>
+                </span>
+              </p>
+              @endif
+              <input id="file" type="file" 
+                accept=".jpg,.png,.gif,.mp4"
+                wire:model="file" class="hidden">
+            </div>
               <div class="messaging-input__button emoji-button {{ $isEmojiPicker?'active':'' }}" role="button" aria-roledescription="button"
                 wire:click="$toggle('isEmojiPicker')">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -363,22 +380,9 @@
                   </svg>
               </div>
               <div tabindex="0" class="rfu-dropzone rfu-dropzone---accept" style="position: relative;">
-                  <div class="rfu-dropzone__notifier">
-                      <div class="rfu-dropzone__inner">
-                          <svg width="41" height="41" viewBox="0 0 41 41" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                  d="M40.517 28.002V3.997c0-2.197-1.808-3.992-4.005-3.992H12.507a4.004 4.004 0 0 0-3.992 3.993v24.004a4.004 4.004 0 0 0 3.992 3.993h24.005c2.197 0 4.005-1.795 4.005-3.993zm-22.002-7.997l4.062 5.42 5.937-7.423 7.998 10H12.507l6.008-7.997zM.517 8.003V36c0 2.198 1.795 4.005 3.993 4.005h27.997V36H4.51V8.002H.517z"
-                                  fill="#000"
-                                  fill-rule="nonzero"
-                              ></path>
-                          </svg>
-                          <p>Drag your files here to add to your post</p>
-                      </div>
-                  </div>
-                  <div class="messaging-input__input-wrapper">
-                      
-                    <div class="hidden rfu-image-previewer"><div class="rfu-image-previewer__image rfu-image-previewer__image--loaded"><div class="rfu-thumbnail__wrapper" style="width: 100px; height: 100px;"><div class="rfu-thumbnail__overlay"><div class="rfu-icon-button" role="button"><div><svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path d="M465 5c5.53 0 10 4.47 10 10s-4.47 10-10 10-10-4.47-10-10 4.47-10 10-10zm3.59 5L465 13.59 461.41 10 460 11.41l3.59 3.59-3.59 3.59 1.41 1.41 3.59-3.59 3.59 3.59 1.41-1.41-3.59-3.59 3.59-3.59-1.41-1.41z" id="b"></path><filter x="-30%" y="-30%" width="160%" height="160%" filterUnits="objectBoundingBox" id="a"><feOffset in="SourceAlpha" result="shadowOffsetOuter1"></feOffset><feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0" in="shadowBlurOuter1"></feColorMatrix></filter></defs><g transform="translate(-451 -1)" fill-rule="nonzero" fill="none"><use fill="#000" filter="url(#a)" xlink:href="#b"></use><use fill="#FFF" fill-rule="evenodd" xlink:href="#b"></use></g></svg></div></div></div><img src="{{$defaultAvatar}}" class="rfu-thumbnail__image" alt=""></div></div><div class="rfu-image-upload-button"><label><input type="file" class="rfu-image-input" accept="image/*" multiple=""><div role="button" class="rfu-thumbnail-placeholder"><svg width="14" height="15" viewBox="0 0 14 15" xmlns="http://www.w3.org/2000/svg"><path d="M14 8.998H8v6H6v-6H0v-2h6v-6h2v6h6z" fill="#A0B2B8" fill-rule="nonzero"></path></svg></div></label></div></div>
 
+
+                  <div class="messaging-input__input-wrapper">
                       <div class="rta str-chat__textarea">
                         <textarea
                           x-on:change="console.log($event.target.value.trim().length)"
@@ -386,13 +390,23 @@
                           wire:model.debounce.3000ms="content" 
                           wire:keydown.enter.prevent="send"
                           wire:click.prevent="$set('isEmojiPicker', false)"
-                          rows="1" placeholder="Send a message" 
+                          @if($file) 
+                          placeholder="点击最右侧按钮发送文件"
+                          @else
+                          placeholder="在此输入文本消息"
+                          @endif
+                          rows="1" 
                           class="rta__textarea str-chat__textarea__textarea" spellcheck="false" style="height: 38px !important;"></textarea>
                       </div>
                   </div>
               </div>
+              
+              
+              <label for="file" class="messaging-input__button @if($file) active @endif" role="button" aria-roledescription="button">
+                <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 512 512" width="20"><path d="m256 512c-141.164062 0-256-114.835938-256-256s114.835938-256 256-256 256 114.835938 256 256-114.835938 256-256 256zm0-480c-123.519531 0-224 100.480469-224 224s100.480469 224 224 224 224-100.480469 224-224-100.480469-224-224-224zm0 0"/><path d="m368 272h-224c-8.832031 0-16-7.167969-16-16s7.167969-16 16-16h224c8.832031 0 16 7.167969 16 16s-7.167969 16-16 16zm0 0"/><path d="m256 384c-8.832031 0-16-7.167969-16-16v-224c0-8.832031 7.167969-16 16-16s16 7.167969 16 16v224c0 8.832031-7.167969 16-16 16zm0 0"/></svg> 
+              </label>
 
-              <div wire:click="send" class="messaging-input__button" role="button" aria-roledescription="button">
+              <div wire:click="send" class="messaging-input__button @if($file) active @endif" role="button" aria-roledescription="button">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path fill-rule="evenodd" clip-rule="evenodd" d="M20 10C20 4.48 15.52 0 10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10ZM6 9H10V6L14 10L10 14V11H6V9Z" fill="white"></path>
                   </svg>
@@ -542,6 +556,14 @@
   }
   .video{
     max-height: 150px;
+  }
+
+  .messaging-input__button.active {
+      opacity: 1;
+  }
+
+  .messaging-input__button.active svg path {
+      fill: #005fff!important
   }
 </style>
 <script>

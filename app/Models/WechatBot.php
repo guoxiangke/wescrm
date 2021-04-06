@@ -37,7 +37,11 @@ class WechatBot extends Model
 
     protected $dates = ['created_at', 'updated_at', 'expires_at', 'login_at'];
     
-    
+    public function scopeActive($query)
+    {
+        return $query->whereNotNull('login_at');
+    }
+
     // bot和contact关系 N:N
     protected $touches = ['contacts']; //https://github.com/laravel/framework/issues/31597
     public function contacts(): BelongsToMany // @see https://laravel.com/docs/8.x/eloquent-relationships#many-to-many
@@ -155,6 +159,7 @@ class WechatBot extends Model
             
             $response = $wechat->send($sendType, $contentWithTo);
             if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
+                Log::info(__METHOD__, ['主动发送成功', $Wxid, $contact->nickName]);
                 // 主动发送消息，需要主动记录 客服座席 user_id to message
                 $wechatBot = WechatBot::firstWhere('team_id', $teamId);
                 $contact = WechatContact::where('userName', $wxid)->firstOrFail(); //初始化还未完成，就发送消息了！
@@ -168,10 +173,9 @@ class WechatBot extends Model
                     'type' => 3, // 3:bot 主动发消息
                     'msgType' => WechatMessage::MSG_TYPES[$typeName],
                 ];
-                return $wechatMessage = WechatMessage::create($data);
-                Log::info(__METHOD__, ['WechatBot::send 主动发送成功', $Wxid, $contact->nickName, $wechatMessage->id]);
+                return WechatMessage::create($data);
             }else{
-                Log::error(__METHOD__, [__LINE__, $response->json(), $sendType, $contentWithTo]);
+                Log::error(__METHOD__, ['主动发送失败', $response->json(), $sendType, $contentWithTo]);
             }
         }
     }
