@@ -143,10 +143,12 @@ class WebChat extends Component
     public $file;
     public $attach;
     public function updatedFile($value){
-        $this->validate([
-            'file' => 'mimes:jpg,png,jpeg,gif,mp4|max:64',
-        ]);
         $this->attach = $value->getClientOriginalName();
+        // https://laravel.com/docs/8.x/validation#basic-usage-of-mime-rule
+        // https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+        $this->validate([
+            'file' => 'mimes:jpg,png,jpeg,gif,mp4,mp4v,mpg4|max:128',
+        ]);
     }
     public function resetFile(){
         $this->reset('file');
