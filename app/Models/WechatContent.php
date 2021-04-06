@@ -27,6 +27,8 @@ class WechatContent extends Model
     ];
     const TYPE_TEMPLATE = 0;
     const TYPE_TEXT = 1;
+    const TYPE_IMAGE = 2;
+    const TYPE_VIDEO = 3;
     
     protected $casts = [
         'content' => 'array',

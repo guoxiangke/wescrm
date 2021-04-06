@@ -124,6 +124,7 @@ class WebChat extends Component
             }
             $this->wechatBot->send((array)$wxid, $wechatContent);
             $this->reset('file');
+            //TODO 发送到filehelper进行转发！
         }// end发送文件
 
         if(trim($this->content)=='') return; //TODO 空消息 不提交
