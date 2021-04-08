@@ -7,6 +7,7 @@ use App\Models\WechatContact;
 use App\Models\WechatContent;
 use App\Models\WechatMessage;
 use App\Services\Tuling;
+use App\Services\Upyun;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ class WeijuController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function listen(Request $request)
+    public function listen(Request $request, Upyun $upyun)
     {
         $wechatMessage = $request['message']['data'];
 
@@ -341,10 +342,38 @@ class WeijuController extends Controller
             
             if($response->ok() && $response->json('code') === 1000){
                 // TODO load in upyun!
-                // $content['content'] = str_replace('http://wx-bbaos.oss-cn-shenzhen.aliyuncs.com', 'https://silk.yongbuzhixi.com', $response->json('data'));
+                
                 $content['content'] = str_replace('http:', 'https:', $response->json('data'));
                 $wechatMessage['content'] = $content;
                 Log::debug(__METHOD__,['消息下载成功', $response->json()]);
+                if($wechatMessage['msgType'] == 34){ // silk => mp3
+                    $path = str_replace('http://wx-bbaos.oss-cn-shenzhen.aliyuncs.com', '', $response->json('data'));
+                    $cdn = "https://silk.yongbuzhixi.com{$path}";
+                    get_headers($cdn); //触发 源站资源迁移 到 // file_get_contents($cdn);
+                    //确保文件已上传到upyun再转换
+                    $count = 0;
+                    do {
+                        $result = $upyun->has($path);
+                        $count++;
+                    } while ($result==false && $count <= 10);
+                    $tasks = $upyun->silk($path);
+                    $taskId = $tasks[0];
+                    
+                    //确保文件转换已完成
+                    $count = 0;
+                    do {
+                        sleep(1);
+                        $result = $upyun->status($tasks);
+                        info($result);
+                        $count++;
+                    } while ($result[$taskId] != 100 && $count <= 10);
+                    
+                    $upyun->delete($path);
+                    $content['content'] = "{$cdn}.mp3";
+                    info($path);
+                    info(get_headers($content['content']));
+                    $wechatMessage['content'] = $content;
+                }   
                 // TODO 下载到本地，给出md5
                 // $str = md5(Storage::get('wechat/87035.jpg')); //3d1e734982e6c18a65c88dd34eac4d96
                 // $str = Storage::size('wechat/87035.jpg');

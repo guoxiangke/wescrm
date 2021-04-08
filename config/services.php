@@ -37,5 +37,11 @@ return [
         ],
         'baseUri' => env('WEIJU_ENDPOINT', ''),
     ],
+    
+    'upyun' =>[
+        'service' => env('UPYUN_SERVICE', ''),
+        'operator' => env('UPYUN_OPERATOR', ''),
+        'password' => env('UPYUN_PASSWORD', ''),
+    ],
 
 ];

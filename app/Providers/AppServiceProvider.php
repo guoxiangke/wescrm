@@ -7,6 +7,7 @@ use App\Observers\WechatMessageObserver;
 use App\Services\Tuling;
 use Illuminate\Support\ServiceProvider;
 use App\Services\Weiju;
+use App\Services\Upyun;
 use Illuminate\Support\Facades\URL;
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Tuling::class, function() {
             return new Tuling();
         });
+
+        $this->app->singleton(Upyun::class, function() {
+            return new Upyun();
+        });
+
     }
 
     /**
