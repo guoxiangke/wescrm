@@ -48,7 +48,6 @@
             <x-table.heading  multi-column >Signature</x-table.heading>
             <x-table.heading  multi-column >Sex</x-table.heading>
             <x-table.heading  multi-column >From</x-table.heading>
-            <x-table.heading />
         </x-slot>
 
         <x-slot name="body">
@@ -145,9 +144,6 @@
                             </span>
                         </x-table.cell>
 
-                        <x-table.cell>
-                            <x-button.link wire:click="edit({{ $wechatBotContact->id }})">Edit</x-button.link>
-                        </x-table.cell>
                     </x-table.row>
                 @empty
                     <x-table.row>
