@@ -96,16 +96,16 @@ class WechatBot extends Model
     //主动发送 文本消息，加入 座席seatUser 和 team
     
     // $tos = ['802'=>'filehelper',...] //Array or Collection id可以不要 
-    // data里的字段名字给API有关，不可以随意更改！
-    // $text = ['type'=>'text','data'=>['content'=>"send text"]];
-    // $text = ['type'=>'image','data'=>['content'=>"https://your.com/test.jpg"]];
-    // $url = ['type'=>'url','data'=>['title'=>'linkTitle', 'url'=>'https://weibo.com', 'description'=>'this is a link', 'thumbUrl'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"]];
-    // $card = ['type'=>'card','data'=>['nameCardId'=>'wxid_xxx', 'nickName'=>'nothing']];
-    // $video = ['type'=>'video','data'=>['path'=>"https://your.com/test.mp4", 'thumbPath'=>"https://your.com/test.jpg"]];
+    // content 字段名字给API有关，不可以随意更改！
+    // $text = ['type'=>'text','content'=>"send text"];
+    // $text = ['type'=>'image','content'=>"https://your.com/test.jpg"];
+    // $url = ['type'=>'url','title'=>'linkTitle', 'url'=>'https://weibo.com', 'description'=>'this is a link', 'thumbUrl'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"];
+    // $card = ['type'=>'card','nameCardId'=>'wxid_xxx', 'nickName'=>'nothing']];
+    // $video = ['type'=>'video','path'=>"https://your.com/test.mp4", 'thumbPath'=>"https://your.com/test.jpg"];
     public function send($tos, WechatContent $wchatContent)
     {
         $typeId = $wchatContent->type;
-        $content = $wchatContent->content['data'];
+        $content = $wchatContent->content;
 
         $seatUser = auth()->user();
         $teamId = $this->team_id;
@@ -127,7 +127,7 @@ class WechatBot extends Model
         foreach ($tos as $wxid) {
             if($typeName == 'template'){
                 // 可用变量替换
-                $template = $wchatContent->content['data']['content'];
+                $template = $wchatContent->content['content'];
                 
                 $contact = \App\Models\WechatBotContact::with('contact','seat')
                     ->whereHas('contact', fn($q)=>$q->where('userName', $wxid))
@@ -152,7 +152,7 @@ class WechatBot extends Model
                 // $data['data']['content'] = $replaced;
                 // $wchatContent->content = $data;
                 // $content = $replaced;
-                $content = ['content'=>$replaced];//$wchatContent->content['data'];
+                $content = ['content'=>$replaced];//$wchatContent->content;
                 $sendType = 'sendText';
             }
             $contentWithTo = array_merge(['ToWxid'=> $wxid], $content);

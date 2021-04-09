@@ -47,26 +47,26 @@ class WechatContent extends Model
             case 'template':
             case 'text':
             case 'image':
-                $content =  $this->content['data']['content'];
+                $content =  $this->content['content'];
                 break;
             case 'video':
-                $content =  $this->content['data']['path'];
+                $content =  $this->content['path'];
                 break;
 
             case 'file':
-                // $content =  $this->content['data']['content'];
+                // $content =  $this->content['content'];
                 break;
 
             case 'card':
-                $content =  $this->content['data']['nameCardId'];
+                $content =  $this->content['nameCardId'];
                 break;
 
             case 'url':
-                $content =  $this->content['data']['url'];
+                $content =  $this->content['url'];
                 break;
 
             case 'app':
-                // $content =  $this->content['data']['content'];
+                // $content =  $this->content['content'];
                 break;
             default:
                 # code...

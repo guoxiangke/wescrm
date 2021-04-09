@@ -124,8 +124,7 @@ class WechatContent extends Component
         $this->useCachedRows();
 
         if ($this->editing->isNot($model)) $this->editing = $model;
-        $this->editing['content'] = json_encode($this->editing['content']['data']);
-
+        $this->editing['content'] = json_encode($this->editing['content']);
         $this->showEditModal = true;
     }
 
@@ -133,11 +132,11 @@ class WechatContent extends Component
     {
         $this->validate();
 
-        $data = json_decode($this->editing->content, 1);
-        
-        $this->editing->content = compact('data'); // {"data": {"content": "主动发送 文本/链接/名片/图片/视频 消息到好友/群"}}
+        $this->editing->content = json_decode($this->editing->content, 1); // {"data": {"content": "主动发送 文本/链接/名片/图片/视频 消息到好友/群"}}
 
         $this->editing->save();
+
+        $this->contents[$this->editing->id] = $this->editing->name; //把新增加的 也放到可选里
 
         $this->showEditModal = false;
 
