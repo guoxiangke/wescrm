@@ -56,7 +56,7 @@ class WechatContentRule implements Rule
                     $this->message .= '缺少必要字段';
                     return false;
                 }
-                if(!Str::startsWith($data['path'], 'http') || !Str::startsWith($data['path'], '.mp4')) {
+                if(!Str::startsWith($data['path'], 'http') || !Str::endsWith($data['path'], '.mp4')) {
                     $this->message .= '视频地址不对';
                     return false;
                 }
