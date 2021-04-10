@@ -10,6 +10,7 @@ use App\Models\WechatContact;
 use App\Models\WechatContent;
 use App\Models\WechatMessage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
 
@@ -108,23 +109,41 @@ class WebChat extends Component
                 'wechat_bot_id' => $this->wechatBot->id,
             ]);
             // $type = $this->file->getMimeType();
-            $extension = pathinfo($this->file->getFilename(), PATHINFO_EXTENSION);
-            if (in_array($extension, ['png', 'jpeg', 'jpg', 'gif'])) {
-                $wechatContent->type = WechatContent::TYPE_IMAGE;
-                $wechatContent->content = ['data'=>[
-                    'content'=> $this->file->temporaryUrl()
-                ]];
-            }
-            if (in_array($extension, ['mp4'])) {
-                $wechatContent->type = WechatContent::TYPE_VIDEO;
-                $wechatContent->content = ['data'=>[
-                    'path'=> $this->file->temporaryUrl(),
-                    'thumbPath'=> 'https://www-static.qbox.me/_next/static/media/banner.62cd5d22423097531dfdc2223bbc4c97.png',
-                ]];
+            $fileName = $this->file->getFilename();
+            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+            switch ($extension) {
+                case 'png':
+                case 'jpeg':
+                case 'jpg':
+                case 'gif':
+                    $wechatContent->type = WechatContent::TYPE_IMAGE;
+                    $wechatContent->content = [
+                        'content'=> $this->file->temporaryUrl()
+                    ];
+                    $this->wechatBot->send((array)$wxid, $wechatContent);
+                    break;
+                case 'mp4':
+                    $wechatContent->type = WechatContent::TYPE_VIDEO;
+                    $wechatContent->content = [
+                        'path'=> $this->file->temporaryUrl(),
+                        'thumbPath'=> 'https://www-static.qbox.me/_next/static/media/banner.62cd5d22423097531dfdc2223bbc4c97.png',
+                    ];
+                    break;
+                default: //others
+                    $fileName = $this->file->getFilename();
+                    $this->file->storeAs('public/files', $fileName);
+                    $link =  config('app.url') . Storage::url('public/files/'.$fileName);
+
+                    $originName = str_replace(".$extension", '', $this->file->getClientOriginalName());
+                    $wechatContent->type = WechatContent::TYPE_TEXT;
+                    $content = "您有收到{$extension}文件\r\n文件名：{$originName}\r\n点此查看：{$link}";
+                    $wechatContent->content = [
+                        'content'=> $content,
+                    ];
+                    break;
             }
             $this->wechatBot->send((array)$wxid, $wechatContent);
             $this->reset('file');
-            //TODO 发送到filehelper进行转发！
         }// end发送文件
 
         if(trim($this->content)=='') return; //TODO 空消息 不提交
@@ -147,7 +166,8 @@ class WebChat extends Component
         // https://laravel.com/docs/8.x/validation#basic-usage-of-mime-rule
         // https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
         $this->validate([
-            'file' => 'mimes:jpg,png,jpeg,gif,mp4,mp4v,mpg4|max:128',
+            //.jpg,.png,.gif,.mp4,.pdf,.doc,.docx,.txt,.md,.pptx,.ppt,.zip
+            'file' => 'mimes:jpg,png,jpeg,gif,mp4,mp4v,mpg4,m4a,pdf,doc,docx,ppt,pptx,zip,txt,md|max:64',
         ]);
     }
     public function resetFile(){

@@ -358,7 +358,7 @@
               </p>
               @endif
               <input id="file" type="file" 
-                accept=".jpg,.png,.gif,.mp4"
+                accept=".jpg,.png,.gif,.mp4,.pdf,.doc,.docx,.txt,.md,.pptx,.ppt,.zip"
                 wire:model="file" class="hidden">
             </div>
               <div class="messaging-input__button emoji-button {{ $isEmojiPicker?'active':'' }}" role="button" aria-roledescription="button"
