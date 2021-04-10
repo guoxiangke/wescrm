@@ -182,6 +182,9 @@ class WeijuController extends Controller
                 $content['fromusername'] = $msg['videomsg']['@attributes']['fromusername'];
                 Log::debug(__METHOD__, ['XML消息', "视频消息", $content]);
             }
+            elseif(Arr::has($msg, 'img')){
+                Log::debug(__METHOD__, ['XML消息', "收到图片"]);
+            }
             else{
                 Log::debug(__METHOD__, ['XML消息', "待处理", $request['message']]);
             }
@@ -267,7 +270,7 @@ class WeijuController extends Controller
                     break;
             }
         }else{ // 简单消息
-            Log::debug(__METHOD__, ['简单消息', 'or待处理', $request['message']]);
+            // Log::debug(__METHOD__, ['简单消息', 'or待处理', $request['message']]);
             // "msgType":10000, 
                 // "content":"你已添加了天空蔚蓝，现在可以开始聊天了。"
                 // "content":"你被\"天空蔚蓝\"移出群聊"
@@ -385,7 +388,8 @@ class WeijuController extends Controller
         if(in_array($wechatMessage['msgType'], WechatMessage::MSG_TYPES_SIMPLE)){
             $wechatMessage['content'] = ['content'=>$rawContent];
         }
-        WechatMessage::create($wechatMessage);
+        // try catch
+        rescue(fn() => WechatMessage::create($wechatMessage), null, false);
 
         // For debug in local
         if(env('local') && $needSave) Storage::put("wechat/message.".$msg->id.".rawcontent", $rawContent);
