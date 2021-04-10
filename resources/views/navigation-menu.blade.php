@@ -153,8 +153,12 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-jet-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+            <x-jet-responsive-nav-link href="{{ route('channel.wechat.weixin') }}" :active="request()->routeIs('channel.wechat.weixin')">
+                Weixin
+            </x-jet-responsive-nav-link>
+
+            <x-jet-responsive-nav-link href="{{ route('channel.wechat.webchat') }}" :active="request()->routeIs('channel.wechat.webchat')">
+                Webchat
             </x-jet-responsive-nav-link>
         </div>
 
