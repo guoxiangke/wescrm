@@ -147,8 +147,8 @@ class WebChat extends Component
         }// end发送文件
 
         if(trim($this->content)=='') return; //TODO 空消息 不提交
-        $data = ['content'=>$this->content];
-        $content = compact('data');
+        $content = ['content'=>$this->content];
+        // $content = compact('data');
         $this->editing->content = $content;
         $this->wechatBot->send((array)$wxid, $this->editing);
 
