@@ -46,7 +46,7 @@ class WechatIsLive extends Command
             $response = $wechat->isOnline();
             if($response->ok() && $response['code'] == 10001){
                 $wechatBot->update(['login_at'=> null]);
-                Log::debug(__METHOD__, ['已下线', $wechatBot->nickName]);
+                Log::info(__METHOD__, ['已下线', $wechatBot->nickName]);
             }else{
                 Log::debug(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
             }
