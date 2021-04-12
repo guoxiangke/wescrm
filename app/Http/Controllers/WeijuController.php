@@ -394,12 +394,10 @@ class WeijuController extends Controller
                         info($result);
                         $count++;
                     } while ($result[$taskId] != 100 && $count <= 10);
-                    
                     $upyun->delete($path);
                     $content['content'] = "{$cdn}.mp3";
-                    info($path);
-                    info(get_headers($content['content']));
                     $wechatMessage['content'] = $content;
+                    Log::debug(__METHOD__, ['语音消息处理完毕']);
                 }   
                 // TODO 下载到本地，给出md5
                 // $str = md5(Storage::get('wechat/87035.jpg')); //3d1e734982e6c18a65c88dd34eac4d96

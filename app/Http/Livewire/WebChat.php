@@ -303,14 +303,14 @@ class WebChat extends Component
                 $fromIds = $messages->groupBy('from_contact_id')->keys()->filter();
                 $contactIds =  $conversationIds->merge($fromIds)->unique();
                 if($contactIds->count()){
-                    Log::debug(__METHOD__, ['新消息中，包含的 contactIds', $contactIds->toArray()]);
+                    // Log::debug(__METHOD__, ['新消息中，包含的 contactIds', $contactIds->toArray()]);
                     // $this->contacts->keyBy('id')->toArray();
                     $addMoreIds = $contactIds->diff(collect($this->contacts)->keys());
                     Log::debug(__METHOD__, ['新消息中，包含的 addMoreIds', count($this->contacts), $addMoreIds->toArray()]);
                     if($addMoreIds->count()){
                         $contacts = WechatContact::whereIn('id', $addMoreIds->all())->get();
                         $this->contacts = $this->contacts + $contacts->keyBy('id')->toArray();
-                        Log::debug(__METHOD__, ['新消息中 新增的 contacts', count($this->contacts), $contacts->toArray()]);
+                        // Log::debug(__METHOD__, ['新消息中 新增的 contacts', count($this->contacts), $contacts->toArray()]);
                     }
                 }
 
