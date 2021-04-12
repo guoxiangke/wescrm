@@ -64,6 +64,7 @@ class WechatMessage extends Model
         10000, //你已添加了xxx，现在可以开始聊天了。
     ];
 
+    // array_flip(WechatMessage::MSG_TYPES)
     const MSG_TYPES = [
         'text'=>1, //文本
         // "msgType":1,"messageType":2,"content":"我通过了你的朋友验证请求，现在我们可以开始聊天了"
@@ -82,6 +83,7 @@ class WechatMessage extends Model
         'emoji'=>47, // emoji
         'geo'=>48, // 地理位置
         'file'=>49, // 文件 // 49 点击▶️收听
+        'refermsg'=>491, //引用  57
         'addByIm' =>65, //  checked 
             // 我是xxx的xxx，添加我的企业微信与我联系吧。
         'agreeAddByIm' => 10000, //25984xxx7841966@openim

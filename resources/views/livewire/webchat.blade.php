@@ -218,7 +218,7 @@
                   }
                 @endphp
 
-                <li class="str-chat__li str-chat__li--single" data-id="conversation-{{$message['id']??'0'}}">
+                <li class="pb-4" data-id="conversation-{{$message['id']??'0'}}">
                   <div 
                     class="str-chat__message str-chat__message-simple str-chat__message--regular str-chat__message--received str-chat__message--has-text 
                     {{ $isBot?'str-chat__message--me str-chat__message-simple--me':'' }} 
@@ -332,8 +332,22 @@
                         <span class="str-chat__message-simple-name">{{ $name }}</span>
                         <time class="str-chat__message-simple-timestamp" datetime="" title="">{{ str_replace('T', ' ', substr($message['updated_at']??now(),0,16)) }}</time>
                       </div>
+                      @if($message['msgType']=='491' && !$isBot)
+                      <div class="absolute" style="
+                      font-size: 10px;
+                      background-color: black;
+                      color:white;
+                      padding: .5em;
+                      text-align: left;">
+                        <span style="font-size: 14px;">❝</span>
+                        <span>{{$message['content']['refermsg']['displayname']??''}}:</span>
+                        {{$message['content']['refermsg']['content']??'暂未处理内容'}}
+                      </div>
+                    @endif
+                      
                     </div>
                   </div>
+
                 </li>
                 @endforeach
               

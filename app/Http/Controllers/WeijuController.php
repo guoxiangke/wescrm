@@ -30,7 +30,7 @@ class WeijuController extends Controller
     public function listen(Request $request, Upyun $upyun)
     {
         $wechatMessage = $request['message']['data'];
-
+        $rawContent = $wechatMessage['content']; //keep rawContent in $content
         //TODO 1s 内来两条同样的消息，放弃一个
 
 
@@ -133,6 +133,7 @@ class WeijuController extends Controller
             
             if(Arr::has($msg, 'appmsg.type')){
                 $appmsgType = $msg['appmsg']['type'];
+                $content['appmsgType'] = $appmsgType;
                 $content['type'] = $appmsgType;
                 switch ($appmsgType) {
                     case '3':
@@ -153,11 +154,34 @@ class WeijuController extends Controller
                         $content['fileext'] = $msg['appmsg']['appattach']['fileext'];
                         $content['md5'] = $msg['appmsg']['md5'];
                         
-                        Log::debug(__METHOD__, ['XML消息', "文件",  $request['message']]);
+                        Log::debug(__METHOD__, ['XML消息', "收到文件"]);
                         // info($content);
                         //$wechatMessage['content'] = ['content' => $text];
                         break;
                     
+                    case '57': //引用消息并回复
+                        $msg = $msg['appmsg'];
+                        //自处理类型 49文件=>491引用 
+                        $wechatMessage['msgType'] = 491;
+                        
+                        $tmpType = $msg['refermsg']['type'];
+                        $types = array_flip(WechatMessage::MSG_TYPES);
+                        $tmpTypeName = $types[$tmpType];
+                        $content['content'] = $msg['title'];
+                        if($msg['refermsg']['type'])
+                        $content['refermsg'] = $msg['refermsg'];
+                        // $msg['refermsg']['type'] == 1; 引用文字 
+                        // $msg['refermsg']['type'] == 3; 引用图片
+                        // $msg['refermsg']['type'] == 49; 引用文件
+                        $wechatMessage['content'] = $content;
+                        if($msg['refermsg']['type'] == 3){
+                            $wechatMessage['content']['refermsg']['content'] = "[图片]";
+                        }
+                        if($msg['refermsg']['type'] == 49){
+                            $wechatMessage['content']['refermsg']['content'] = "[文件]";
+                        }
+                        Log::debug(__METHOD__, ['XML消息', "引用消息"]);
+                        break;
                     case '19': //群聊的聊天记录
                         $items = xStringToArray($msg['appmsg']['recorditem']);
                         $content['title'] = $items['title'];
@@ -218,7 +242,7 @@ class WeijuController extends Controller
                 case '47': //emoji
                     Log::debug(__METHOD__, ['<msg消息', '收到emoji']);
                     $msg = $msg['emoji'];
-                    $content['type'] = $msg['@attributes']['type']; //? 'type' => '2',
+                    // $content['type'] = $msg['@attributes']['type']; //? 'type' => '2',
                     $content['content'] = $msg['@attributes']['cdnurl'];
                     $content['md5'] = $msg['@attributes']['md5'];
                     $content['len'] = $msg['@attributes']['len'];
@@ -335,10 +359,10 @@ class WeijuController extends Controller
             // 使用Cache 缓存要处理的条目
         // TODO 加入写入队列，使用队列写入数据库?
             
-        $rawContent = $wechatMessage['content']; //keep rawContent in $content
+        
         $needSave = false;
         // TODO do in queue! 49 点击▶️收听， 不需要下载 !in_array($appmsgType,[3,33])
-        if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES) && !in_array($appmsgType,[3,33])){
+        if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES) && !in_array($appmsgType,[3,33,57])){
             $needSave = true;
             // 下载 文件更新 content为链接
             $response = $wechatBot->wechat->saveAttachmentResponse($wechatMessage['msgType'], $wechatMessage['msgId'], $wechatMessage['fromUser'], $wechatMessage['content']);
