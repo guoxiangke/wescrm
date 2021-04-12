@@ -90,7 +90,8 @@
             $conversation = end($conversation); //最后一个对方发的消息
             $time = $conversation['updated_at']??now();
             $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
-            $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
+            $name = $remarks[$contactId]??'G'.$contactsArray[$contactId]['id'];
+            // $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
             $fallbackAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
         @endphp
         <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
@@ -164,7 +165,7 @@
             <div class="messaging__channel-header__avatars"> 
               <img data-testid="avatar-img" src="{{ $contactsArray[$currentConversationId]['smallHead']??$defaultAvatar }}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
             </div>
-            <div class="channel-header__name">{{ $contactsArray[$currentConversationId]['nickName']??'暂无群名'.$contactsArray[$currentConversationId]['id'] }}</div>
+            <div class="channel-header__name">{{ $remarks[$currentConversationId]??'暂无群名'.$contactsArray[$currentConversationId]['id'] }}</div>
             <div class="messaging__channel-header__right">
               <div class="messaging__typing-indicator">
                 <div>

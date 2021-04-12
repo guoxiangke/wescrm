@@ -49,6 +49,7 @@ class WebChat extends Component
     public $emojis;
     public $codes;
     public $styles;
+    public $remarks;
     public function mount()
     {
 
@@ -82,6 +83,8 @@ class WebChat extends Component
         $this->isDarkUi = $this->user->getMeta('isDarkUi', false);
         $this->emojis = ['👍🏼','👎','✌','🤝','💪','✊','🙏','👌','👋','🤟','😀','😂','🤫','😵','🤗','😘','😍','🥺','😆','😅','😥','😓','😐','🤭','🤥','😱','😷','😠','🤕','😲','😔','😗','😝','🙇','🧧','💔','🍉','☕','🍺','🐞','🎉','🎁','👻'];
         $this->attach = false;
+
+        $this->remarks = WechatBotContact::where('wechat_bot_id', $this->wechatBot->id)->pluck('remark','wechat_contact_id')->toArray();
     }
     public function insertEmoji($emoji)
     {   
