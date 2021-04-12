@@ -61,6 +61,7 @@ services:
       - ./config:/var/www/html/config
       - ./resources:/var/www/html/resources
       - ./routes:/var/www/html/routes
+      - ./storage/app:/var/www/html/storage/app
     environment:
       REDIS_PORT: 6379
       CONTAINER_ROLE: scheduler
