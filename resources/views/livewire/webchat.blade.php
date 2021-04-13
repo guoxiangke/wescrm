@@ -242,6 +242,14 @@
                     @php
                       $content = $message['content']['content']??'暂未处理消息';
                       // TODO   处理 content   
+                      $now = now();
+                      $time = $message['updated_at']??$now;
+                      $updatedAt = Illuminate\Support\Carbon::parse($time);
+                      if($updatedAt->copy()->diffInHours($now)>=10){
+                        $time = $updatedAt->setTimezone('Asia/Shanghai')->toDateTimeString();
+                      }else{
+                        $time = $updatedAt->diffForHumans();
+                      }
                     @endphp
                     <div data-testid="message-inner" class="str-chat__message-inner">
                       <div class="str-chat__message-text">
@@ -331,7 +339,7 @@
                       
                       <div class="str-chat__message-data str-chat__message-simple-data">
                         <span class="str-chat__message-simple-name">{{ $name }}</span>
-                        <time class="str-chat__message-simple-timestamp" datetime="" title="">{{ str_replace('T', ' ', substr($message['updated_at']??now(),0,16)) }}</time>
+                        <time class="str-chat__message-simple-timestamp" datetime="" title="">{{ $time }}</time>
                       </div>
                       @if($message['msgType']=='491' && !$isBot)
                       <div class="absolute" style="
@@ -499,7 +507,7 @@
                       </div>
                       <div class="str-chat__message-data str-chat__message-simple-data">
                           <span class="str-chat__message-simple-name">plain-paper-2</span>
-                          <time class="str-chat__message-simple-timestamp" datetime="Mon Mar 15 2021 15:41:38 GMT+0800 (China Standard Time)" title="Mon Mar 15 2021 15:41:38 GMT+0800 (China Standard Time)">Today at 3:41 PM</time>
+                          <time class="str-chat__message-simple-timestamp" datetime="" title="">Today at 3:41 PM</time>
                       </div>
                   </div>
               </div>
