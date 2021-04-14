@@ -29,7 +29,7 @@ class WechatController extends Controller
             WechatContent::make([
                 'name' => 'tmpSendStructure',
                 'type' => array_search($request['type'], WechatContent::TYPES),
-                'content' => ['data'=>$request['data']],
+                'content' => $request['data'],
             ])
         );
     }
