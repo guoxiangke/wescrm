@@ -240,7 +240,12 @@
                       </div>
 
                     @php
-                      $content = $message['content']['content']??'暂未处理消息';
+                      $content = $message['content']['content']??"暂未处理的{$message['msgType']}消息";
+                      if(is_array($content)){//{"content":[]}
+                        $content = "内容为空，消息处理失败";
+                      }
+                      // info($message);
+                      // info($content,[$message['id']]);
                       // TODO   处理 content   
                       $now = now();
                       $time = $message['updated_at']??$now;
@@ -265,16 +270,29 @@
                                 </div>
                                 @break
                             @case(34)
-                                <audio class='audio' controls src='{{ $content }}' controlslist="nodownload" />
+                                <audio class='audio' preload="none" controls src='{{ $content }}' controlslist="nodownload" />
+                                @break
+                            @case(301)
+                              <div>
+                                <p>收到音频消息：{{ $content }}</p>
+                                <audio class='audio' preload="none" controls src='{{ $message['content']['url'] }}' controlslist="nodownload" />
+                              </div>
                                 @break
                             @case(43)
-                                <video class='video' controls src='{{ $content }}' controlslist="nodownload" />
+                                <video class='video' preload="none" controls src='{{ $content }}' controlslist="nodownload" />
+                                @break
+                            @case(331)
+                                <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
+                                  <p>收到[{{$message['content']['sourcedisplayname']}}]小程序消息：<br/>{{ $content }}<br/>请到手机微信查看</p>
+                                </div>
                                 @break
                             @case(49)
                                 @if(isset($message['content']['fileext']) && $message['content']['fileext']=='mp3')
                                   <audio class='audio' controls src='{{$content}}?ext=.mp3' controlslist="nodownload" />
                                   @break
                                 @endif
+
+                                @if($content!="暂未处理的49消息")
                                 <div class="str-chat__message-attachment str-chat__message-attachment--file str-chat__message-attachment--file str-chat__message-attachment--file--">
                                   <div data-testid="attachment-file" class="str-chat__message-attachment-file--item">
                                     @isset($message['content']['fileext'])
@@ -293,48 +311,17 @@
                                   </div>
                                 </div>
                                 @break
-                                
+                                @endif
+
+                                <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
+                                  <p>{{ $content }}</p>
+                                </div>
+                                @break
                             @default
                               <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
                                 <p>{{ $content }}</p>
                               </div>
                         @endswitch
-
-
-                        <div data-testid="message-options" class="str-chat__message-simple__actions">
-                          <div data-testid="message-reaction-action" class="str-chat__message-simple__actions__action str-chat__message-simple__actions__action--reactions">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
-                              <g fill-rule="evenodd" clip-rule="evenodd">
-                                <path d="M6 1.2C3.3 1.2 1.2 3.3 1.2 6c0 2.7 2.1 4.8 4.8 4.8 2.7 0 4.8-2.1 4.8-4.8 0-2.7-2.1-4.8-4.8-4.8zM0 6c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6-6-2.7-6-6z">
-                                </path>
-                                <path d="M5.4 4.5c0 .5-.4.9-.9.9s-.9-.4-.9-.9.4-.9.9-.9.9.4.9.9zM8.4 4.5c0 .5-.4.9-.9.9s-.9-.4-.9-.9.4-.9.9-.9.9.4.9.9zM3.3 6.7c.3-.2.6-.1.8.1.3.4.8.9 1.5 1 .6.2 1.4.1 2.4-1 .2-.2.6-.3.8 0 .2.2.3.6 0 .8-1.1 1.3-2.4 1.7-3.5 1.5-1-.2-1.8-.9-2.2-1.5-.2-.3-.1-.7.2-.9z">
-                                </path>
-                              </g>
-                            </svg>
-                          </div>
-                          <div data-testid="thread-action" class="str-chat__message-simple__actions__action str-chat__message-simple__actions__action--thread">
-                            <svg width="14" height="10" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M8.516 3c4.78 0 4.972 6.5 4.972 6.5-1.6-2.906-2.847-3.184-4.972-3.184v2.872L3.772 4.994 8.516.5V3zM.484 5l4.5-4.237v1.78L2.416 5l2.568 2.125v1.828L.484 5z" fill-rule="evenodd">
-                              </path>
-                            </svg>
-                          </div>
-                          <div data-testid="message-actions" class="str-chat__message-simple__actions__action str-chat__message-simple__actions__action--options">
-                            <div data-testid="message-actions-box" class="str-chat__message-actions-box">
-                              <ul class="str-chat__message-actions-list">
-                                <button>
-                                  <li class="str-chat__message-actions-list-item">Flag</li>
-                                </button>
-                                <button>
-                                  <li class="str-chat__message-actions-list-item">Mute</li>
-                                </button>
-                              </ul>
-                            </div>
-                            <svg width="11" height="4" viewBox="0 0 11 4" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M1.5 3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill-rule="nonzero">
-                              </path>
-                            </svg>
-                          </div>
-                        </div>
                       </div>
                       
                       <div class="str-chat__message-data str-chat__message-simple-data">

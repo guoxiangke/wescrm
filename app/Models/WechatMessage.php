@@ -47,9 +47,8 @@ class WechatMessage extends Model
     const ATTACHMENY_MSG_TYPES = [
         3, // Img
         6, // File文件
-        34, // Voice? no data?
+        34, // Voice
         43, // Video
-        49, // 文件 49 点击▶️收听
     ];
 
     const APP_MSG_TYPES = [
@@ -70,9 +69,11 @@ class WechatMessage extends Model
         // "msgType":1,"messageType":2,"content":"我通过了你的朋友验证请求，现在我们可以开始聊天了"
         'template'=>1, //发送带模版的文本 @see WechatBot::send(167)
         'image'=>3, // Img
+        'voiceLink'=>301, //自定义 49文件 点击▶️收听 
         'url'=>5,// 5表示链接，
         'file'=>6,// 6表示文件
         'roomChatRecords'=>19,// 19表示群聊的聊天记录，
+        'miniapp'=>331, //自定义 331 miniapp
         'voice'=>34, // Voice
         'requestFriend' => 37,
         // 收到好友请求

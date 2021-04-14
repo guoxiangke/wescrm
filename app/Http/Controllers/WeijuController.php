@@ -130,37 +130,39 @@ class WeijuController extends Controller
         $appmsgType = "init";
         if(Str::startsWith($wechatMessage['content'], '<?xml ')) {
             $msg = xStringToArray($wechatMessage['content']);
-            
             if(Arr::has($msg, 'appmsg.type')){
-                $appmsgType = $msg['appmsg']['type'];
+                $msg = $msg['appmsg'];
+                $appmsgType = $msg['type'];
                 $content['appmsgType'] = $appmsgType;
                 $content['type'] = $appmsgType;
                 switch ($appmsgType) {
-                    case '3':
-                        Log::debug(__METHOD__, ['XML消息', '音频：点击▶️收听', $msg['appmsg']['title'], $msg['appmsg']['url']]);
-                        # TODO code...// appmsg.type = 3;
+                    case '3':// 49文件
+                        $wechatMessage['msgType'] = 301;//自定义 点击▶️收听 
+                        Log::debug(__METHOD__, ['XML消息', '音频：点击▶️收听']);
+                        $content['content'] = $msg['title'];
+                        $content['url'] = $msg['url'];
+                        $wechatMessage['content'] = $content;
                         break;
-                    case '33':
-                        Log::debug(__METHOD__, ['XML消息', '小程序', $msg['appmsg']['title'],$msg['appmsg']['sourcedisplayname']]);
-                        # TODO code...// appmsg.type = 33;
+                    case '33':// 49文件
+                        $wechatMessage['msgType'] = 331;//'miniapp'=>331, //自定义 331 miniapp
+                        Log::debug(__METHOD__, ['XML消息', '小程序']);
+                        $content['content'] = $msg['title'];
+                        $content['sourcedisplayname'] = $msg['sourcedisplayname'];
+                        $wechatMessage['content'] = $content;
                         break;
                     case '43': //mp4视频
                         Log::debug(__METHOD__, ['XML消息', 'mp4视频', $msg]);
-                        # TODO code...// appmsg.type = 33;
                         break;
                     case '6': //文件
-                        $content['title'] = $msg['appmsg']['title'];
-                        $content['totallen'] = $msg['appmsg']['appattach']['totallen'];
-                        $content['fileext'] = $msg['appmsg']['appattach']['fileext'];
-                        $content['md5'] = $msg['appmsg']['md5'];
-                        
+                        $content['title'] = $msg['title'];
+                        $content['totallen'] = $msg['appattach']['totallen'];
+                        $content['fileext'] = $msg['appattach']['fileext'];
+                        $content['md5'] = $msg['md5'];
                         Log::debug(__METHOD__, ['XML消息', "收到文件"]);
                         // info($content);
-                        //$wechatMessage['content'] = ['content' => $text];
+                        $wechatMessage['content'] = $content;
                         break;
-                    
-                    case '57': //引用消息并回复
-                        $msg = $msg['appmsg'];
+                    case '57': // 49文件 //引用消息并回复 
                         //自处理类型 49文件=>491引用 
                         $wechatMessage['msgType'] = 491;
                         
@@ -183,10 +185,10 @@ class WeijuController extends Controller
                         Log::debug(__METHOD__, ['XML消息', "引用消息"]);
                         break;
                     case '19': //群聊的聊天记录
-                        $items = xStringToArray($msg['appmsg']['recorditem']);
+                        $items = xStringToArray($msg['recorditem']);
                         $content['title'] = $items['title'];
                         $content['desc'] = $items['desc'];
-                        $content['url'] = $msg['appmsg']['url'];
+                        $content['url'] = $msg['url'];
                         foreach ($items['datalist']['dataitem'] as  $item) {
                             $dataitem['name'] = $item['sourcename'];
                             $dataitem['time'] = $item['sourcetime'];
@@ -194,6 +196,7 @@ class WeijuController extends Controller
                             $dataitem['desc'] = $item['datadesc'];
                             $content['dataitems'][] = $dataitem;
                         }
+                        $wechatMessage['content'] = $content;
                         break;
                     default:
                         Log::error(__METHOD__, ['XML消息', '未处理', $appmsgType]);
@@ -205,6 +208,7 @@ class WeijuController extends Controller
                 $content['md5'] = $msg['videomsg']['@attributes']['md5'];
                 $content['fromusername'] = $msg['videomsg']['@attributes']['fromusername'];
                 Log::debug(__METHOD__, ['XML消息', "视频消息", $content]);
+                $wechatMessage['content'] = $content;
             }
             elseif(Arr::has($msg, 'img')){
                 Log::debug(__METHOD__, ['XML消息', "收到图片"]);
@@ -362,14 +366,12 @@ class WeijuController extends Controller
         
         $needSave = false;
         // TODO do in queue! 49 点击▶️收听， 不需要下载 !in_array($appmsgType,[3,33])
-        if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES) && !in_array($appmsgType,[3,33,57])){
+        if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES)){
             $needSave = true;
             // 下载 文件更新 content为链接
-            $response = $wechatBot->wechat->saveAttachmentResponse($wechatMessage['msgType'], $wechatMessage['msgId'], $wechatMessage['fromUser'], $wechatMessage['content']);
+            $response = $wechatBot->wechat->saveAttachmentResponse($wechatMessage['msgType'], $wechatMessage['msgId'], $wechatMessage['fromUser'], $rawContent);
             
             if($response->ok() && $response->json('code') === 1000){
-                // TODO load in upyun!
-                
                 $content['content'] = str_replace('http:', 'https:', $response->json('data'));
                 $wechatMessage['content'] = $content;
                 Log::debug(__METHOD__,['消息下载成功', $response->json()]);
@@ -400,10 +402,8 @@ class WeijuController extends Controller
                     Log::debug(__METHOD__, ['语音消息处理完毕']);
                 }   
                 // TODO 下载到本地，给出md5
-                // $str = md5(Storage::get('wechat/87035.jpg')); //3d1e734982e6c18a65c88dd34eac4d96
-                // $str = Storage::size('wechat/87035.jpg');
-            }else{ //TODO Failed Retry, 队列天然支持
-                Log::error(__METHOD__, ['文件消息下载失败，请使用saveAttachmentBy(WechatMessage)重试！', $wechatMessage, $response]);
+            }else{ //TODO Failed Retry, 队列支持
+                Log::error(__METHOD__, ['文件消息下载失败', $response]);
             }
         }
         // 处理纯文本消息json
