@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\WechatBot;
+use App\Models\WechatContent;
 use App\Services\Wechat;
 use App\Services\Weiju;
 use Illuminate\Console\Command;
@@ -48,7 +49,13 @@ class WechatIsLive extends Command
                 $wechatBot->update(['login_at'=> null]);
                 Log::info(__METHOD__, ['已下线', $wechatBot->nickName]);
             }else{
-                Log::debug(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
+                // Log::debug(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
+                $hours = $wechatBot->login_at->diffInHours(now());
+                $wechatBot->send(['filehelper'], WechatContent::make([
+                    'name' => 'tmp',
+                    'type' => WechatContent::TYPE_TEXT,
+                    'content' => ['content'=> "已上线{$hours}小时"]
+                ]));
             }
         });
 

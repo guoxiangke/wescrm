@@ -440,7 +440,7 @@ class WeijuController extends Controller
                     return $wechatBot->send($to, WechatContent::make([
                         'name' => 'tuling tmp',
                         'type' => WechatContent::TYPE_TEXT,
-                        'content' => ['data'=>['content'=>$result['values']['text']]]
+                        'content' => ['content'=>$result['values']['text']]
                     ]));
                 }
             }
