@@ -30,8 +30,13 @@ class WeijuController extends Controller
     public function listen(Request $request, Upyun $upyun)
     {
         $wechatMessage = $request['message']['data'];
+        // abandon some message!
+            // 9999 微信团队的未读消息  "<newcount>3<\/newcount><version>900<\/version>"
+            // 50 "<voipinvitemsg><roomid>109319142<\/roomid><key>6949073500459070105<\/key><status>2<\/status><invitetype>1<\/invitetype><\/voipinvitemsg>"
+        if(in_array($wechatMessage['msgType'],[9999,50])) return; 
+
         $rawContent = $wechatMessage['content']; //keep rawContent in $content
-        //TODO 1s 内来两条同样的消息，放弃一个
+        // 1s 内来两条同样的消息，放弃一个, 已使用 数据库唯一微信消息Id约束
 
 
         // 企业微信账号：  25984983457841966@openim
@@ -413,7 +418,6 @@ class WeijuController extends Controller
         if(in_array($wechatMessage['msgType'], WechatMessage::MSG_TYPES_SIMPLE)){
             $wechatMessage['content'] = ['content'=>$rawContent];
         }
-        // try catch
         rescue(fn() => WechatMessage::create($wechatMessage), null, false);
 
         // For debug in local
