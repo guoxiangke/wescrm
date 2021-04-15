@@ -248,6 +248,13 @@ class WeijuController extends Controller
                     Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
                     break;
                 
+                case '42': //推荐名片
+                    $content['alias'] = $msg['@attributes']['alias'];
+                    $content['smallheadimgurl'] = $msg['@attributes']['smallheadimgurl'];
+                    $content['content'] = $msg['@attributes']['nickname'];
+                    $wechatMessage['content'] = $content;
+                    Log::debug(__METHOD__, ['<msg消息', '收到名片消息', $content['content']]);
+                    break;
                 case '47': //emoji
                     Log::debug(__METHOD__, ['<msg消息', '收到emoji']);
                     $msg = $msg['emoji'];

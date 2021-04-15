@@ -267,6 +267,12 @@
                                   <img class="str-chat__message-attachment--img" src="{{ $content }}" data-testid="image-test">
                                 </div>
                                 @break
+                            @case(42)
+                                <div class="str-chat__message-attachment str-chat__message-attachment--image str-chat__message-attachment--image str-chat__message-attachment--image--">
+                                  <p>名片推荐：{{ $content }}  {{ $message['content']['alias']  }}</p>
+                                  <img style="max-height: 100px;" src="{{ $message['content']['smallheadimgurl'] }}" data-testid="image-test">
+                                </div>
+                                @break
                             @case(47)
                                 <div class="str-chat__message-attachment str-chat__message-attachment--image str-chat__message-attachment--image str-chat__message-attachment--image--">
                                   <img style="max-height: 100px;" src="{{ $content }}" data-testid="image-test">
