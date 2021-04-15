@@ -38,8 +38,12 @@ class WechatBotContact extends Component
         return view('livewire.wechat-bot-contact', compact('models'));
     }
 
-    public function updateRemark($remark, $value){
-        Log::error(__METHOD__, ['called', $remark,$value]);
+    public function updateRemark(Model $wechatBotContact, $value){
+        $wechatBotContact->remark = trim($value);
+        if($wechatBotContact->isDirty('remark')){
+            $wechatBotContact->save();
+            Log::error(__METHOD__, ['called1', $wechatBotContact, $value]);
+        }
     }
 
     use WithPerPagePagination, WithSorting, WithBulkActions, WithCachedRows;
@@ -56,12 +60,13 @@ class WechatBotContact extends Component
 
     protected $listeners = ['refreshWechatContacts' => '$refresh'];
 
+    public $editTag = '';
     public function rules()
     {
         return [
-            'editing.name' => 'required|min:3',
-            'editing.email' => 'required|email',
-            'editing.password' => 'nullable',
+            'editing.remark' => 'required|min:3',
+            'editing.seat_user_id' => 'required',
+            // 'editing.tag' => 'sometimes',
         ];
     }
 
@@ -93,6 +98,7 @@ class WechatBotContact extends Component
             Tag::findOrCreate($tagName, $this->tagWith);
             $wechatBotContact->attachTag($tagName, $this->tagWith);
         }
+        $this->editTag = '';
     }
 
     public function updatedFilters()
@@ -123,20 +129,10 @@ class WechatBotContact extends Component
         return Model::make(['date' => now(), 'status' => 'success']);
     }
 
-    public function create()
+    public function edit(Model $model)
     {
         $this->useCachedRows();
-
-        if ($this->editing->getKey()) $this->editing = $this->makeBlankModel();
-
-        $this->showEditModal = true;
-    }
-
-    public function edit(Model $Model)
-    {
-        $this->useCachedRows();
-
-        if ($this->editing->isNot($Model)) $this->editing = $Model;
+        if ($this->editing->isNot($model)) $this->editing = $model;
 
         $this->showEditModal = true;
     }
@@ -145,6 +141,14 @@ class WechatBotContact extends Component
     {
         $this->validate();
         $this->editing->save();
+        if($this->editTag){
+            $tagName = trim($this->editTag);
+            if($tagName) {
+                Tag::findOrCreate($tagName, $this->tagWith);
+                $this->editing->attachTag($tagName, $this->tagWith);
+                $this->editTag = '';
+            }
+        }
 
         $this->showEditModal = false;
 

@@ -48,6 +48,7 @@
             <x-table.heading  multi-column >Signature</x-table.heading>
             <x-table.heading  multi-column >Sex</x-table.heading>
             <x-table.heading  multi-column >From</x-table.heading>
+            <x-table.heading />
         </x-slot>
 
         <x-slot name="body">
@@ -86,20 +87,13 @@
 
                         <x-table.cell>
                             <p class="text-cool-gray-600">
-                                <input  type='text'
-        class="mt-2 text-sm sm:text-base pl-2 pr-4 rounded-lg border border-gray-400 w-full py-2 focus:outline-none focus:border-blue-400" 
-        wire:blur.stop="updateRemark({{$wechatBotContact->id}}, $event.target.value)" wire:key="{{$wechatBotContact->id}}" value="{{ $wechatBotContact->remark }}" />
-                                {{-- @livewire('update-remark', ['wechatBotContact' => $wechatBotContact], key($wechatBotContact->id)) --}}
+                                {{ $wechatBotContact->remark  }}
                             </p>
                         </x-table.cell>
 
                         <x-table.cell>
                             <div class="max-w-lg m-6">
                                 <div class="relative">
-                                  <input class="appearance-none block w-full bg-white text-gray-700 border border-gray-200 rounded py-2 px-4 leading-tight focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter some tags"
-                                    wire:keydown.enter="attachTag({{$wechatBotContact->id}}, $event.target.value)"
-                                    wire:key="attach-tag-{{$wechatBotContact->id}}-{{$wechatBotContact->id}}"
-                                  >
                                   <div class="hidden">
                                     <div class="absolute z-40 left-0 mt-2 w-full">
                                       <div class="py-1 text-sm bg-white rounded shadow-lg border border-gray-300">
@@ -111,13 +105,8 @@
                                     <div id="need-to-be-changed">
                                     @isset($tags[$wechatBotContact->id])
                                         @foreach ($tags[$wechatBotContact->id] as $tagId =>$tagName)
-                                        <div class="bg-blue-100 inline-flex items-center text-sm rounded mt-2 mr-1 overflow-hidden">
-                                            <span id="tag-{{$tagId}}" class="ml-2 mr-1 leading-relaxed truncate max-w-xs px-1" x-text="tag">{{$tagName}}</span>
-                                            <button class="w-6 h-8 inline-block align-middle text-gray-500 bg-blue-200 focus:outline-none"
-                                            wire:click.stop="detachTag({{$wechatBotContact->id}},'{{$tagName}}')"
-                                            wire:key="detach-tag-{{$wechatBotContact->id}}-{{$tagId}}">
-                                                <svg class="w-6 h-6 fill-current mx-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M15.78 14.36a1 1 0 0 1-1.42 1.42l-2.82-2.83-2.83 2.83a1 1 0 1 1-1.42-1.42l2.83-2.82L7.3 8.7a1 1 0 0 1 1.42-1.42l2.83 2.83 2.82-2.83a1 1 0 0 1 1.42 1.42l-2.83 2.83 2.83 2.82z"/></svg>
-                                            </button>
+                                        <div class="bg-blue-100 inline-flex items-center text-sm rounded mt-2 p-2 mr-1 overflow-hidden">
+                                            <span class="ml-2 mr-1 leading-relaxed truncate max-w-xs px-1">{{$tagName}}</span>
                                         </div>
                                         @endforeach
                                     @endisset
@@ -142,6 +131,9 @@
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-{{ $wechatBotContact->status_color }}-100 text-{{ $wechatBotContact->status_color }}-800 capitalize">
                                 {{ $wechatBotContact->contact->province }}
                             </span>
+                        </x-table.cell>
+                        <x-table.cell>
+                            <x-button.link wire:click="edit({{ $wechatBotContact->id }})">Edit</x-button.link>
                         </x-table.cell>
 
                     </x-table.row>
@@ -185,17 +177,35 @@
             <x-slot name="title">Edit</x-slot>
 
             <x-slot name="content">
-                <x-input.group for="name" label="Name" :error="$errors->first('editing.name')">
-                    <x-input.text wire:model="editing.name" id="name" placeholder="Name" />
+                <x-input.group for="remark" label="备注名" :error="$errors->first('editing.remark')">
+                    <x-jet-input name="remark" type="text" class="mt-1 block w-full" 
+                        wire:model="editing.remark" 
+                        value="{{$editing->remark}}"
+                        wire:keydown.enter.prevent.stop="updateRemark({{$editing->id}}, $event.target.value)" 
+                        autocomplete="remark"/>
                 </x-input.group>
 
-                <x-input.group for="email" label="Email" :error="$errors->first('editing.email')">
-                    <x-input.text wire:model="editing.email" id="email" />
+                <x-input.group for="tag" label="添加标签">
+                    <x-jet-input name="tag" type="text" placeholder="输入新标签并回车,无需点击保存按钮" class="mt-1 block w-full" 
+                        wire:model="editTag"
+                        wire:keydown.enter.prevent.stop="attachTag({{$editing->id}}, $event.target.value)" />
                 </x-input.group>
 
-                <x-input.group for="password" label="Password" :error="$errors->first('editing.password')">
-                    <x-input.text wire:model.lazy="editing.password" id="password" />
-                </x-input.group>
+                <div id="need-to-be-changed">
+                    @isset($tags[$editing->id])
+                        @foreach ($tags[$editing->id] as $tagId =>$tagName)
+                        <div class="bg-blue-100 inline-flex items-center text-sm rounded mt-2 mr-1 overflow-hidden">
+                            <span id="tag-{{$tagId}}" class="ml-2 mr-1 leading-relaxed truncate max-w-xs px-1">{{$tagName}}</span>
+                            <button class="w-6 h-8 inline-block align-middle text-gray-500 bg-blue-200 focus:outline-none"
+                            wire:click.prevent.stop="detachTag({{$editing->id}},'{{$tagName}}')">
+                                <svg class="w-6 h-6 fill-current mx-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M15.78 14.36a1 1 0 0 1-1.42 1.42l-2.82-2.83-2.83 2.83a1 1 0 1 1-1.42-1.42l2.83-2.82L7.3 8.7a1 1 0 0 1 1.42-1.42l2.83 2.83 2.82-2.83a1 1 0 0 1 1.42 1.42l-2.83 2.83 2.83 2.82z"/></svg>
+                            </button>
+                        </div>
+                        @endforeach
+                    @endisset
+                </div>
+                
+
             </x-slot>
 
             <x-slot name="footer">

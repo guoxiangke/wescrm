@@ -119,7 +119,7 @@
             <x-slot name="content">
 
                 <x-input.group for="name" label="响应的关键词" :error="$errors->first('editing.keyword')">
-                    <x-jet-input id="keyword" wire:model="editing.keyword" type="text" class="mt-1 block w-full" wire:model.defer="editing.keyword" autocomplete="keyword" />
+                    <x-jet-input id="keyword" wire:model="editing.keyword" type="text" class="mt-1 block w-full" autocomplete="keyword" />
                     
                 </x-input.group>
 
