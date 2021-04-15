@@ -93,6 +93,9 @@
             $name = $remarks[$contactId]??'G'.$contactsArray[$contactId]['id'];
             // $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
             $fallbackAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
+            
+            if(is_array($conversation['content'])) $content = $conversation['content']['content']??'新消息🆕';
+            if(is_array($content)) $content = "未处理消息";
         @endphp
         <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
           <div class="channel-preview__avatars">
@@ -103,7 +106,7 @@
               <p class="channel-preview__content-name">{{ $name }}</p>
               <p class="channel-preview__content-time">{{ $updatedAt }}</p>
             </div>
-            <p class="channel-preview__content-message">{{ $conversation['content']['content']??'新消息🆕' }} </p>
+            <p class="channel-preview__content-message">{{ $content }} </p>
           </div>
         </div>
         @endforeach

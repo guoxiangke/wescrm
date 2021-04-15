@@ -274,6 +274,9 @@ class WeijuController extends Controller
         }elseif(Str::startsWith($wechatMessage['content'], '<sysmsg')){
             $msg = xStringToArray($wechatMessage['content']);
             switch ($wechatMessage['msgType']) {
+                case '9999':
+                    Log::error(__METHOD__, ['sysmsg', "9999", $msg]);
+                    break;
                 case '10002': 
                     //"$username$"邀请你和"$names$"加入了群聊
                     // "$username$\"修改群名为“$remark$”
