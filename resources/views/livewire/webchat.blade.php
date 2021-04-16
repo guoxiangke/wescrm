@@ -295,7 +295,7 @@
                                   <p>收到[{{$message['content']['sourcedisplayname']}}]小程序消息：<br/>{{ $content }}<br/>请到手机微信查看</p>
                                 </div>
                                 @break
-                            @case(49)
+                            @case(496)
                                 @if(isset($message['content']['fileext']) && $message['content']['fileext']=='mp3')
                                   <audio class='audio' controls src='{{$content}}?ext=.mp3' controlslist="nodownload" />
                                   @break
@@ -305,7 +305,7 @@
                                 <div class="str-chat__message-attachment str-chat__message-attachment--file str-chat__message-attachment--file str-chat__message-attachment--file--">
                                   <div data-testid="attachment-file" class="str-chat__message-attachment-file--item">
                                     @isset($message['content']['fileext'])
-                                    <svg viewBox="0 0 48 48" width="30" height="30" style="max-width: 100%;"><defs><clipPath id="pageRadius2"><rect x="4" y="0" rx="4" ry="4" width="40" height="48"></rect></clipPath><clipPath id="foldCrop"><rect width="40" height="12" transform="rotate(-45 0 12)"></rect></clipPath><linearGradient x1="100%" y1="0%" y2="100%" id="pageGradient2"><stop stop-color="white" stop-opacity="0.25" offset="0%"></stop><stop stop-color="white" stop-opacity="0" offset="66.67%"></stop></linearGradient></defs><g id="file" clip-path="url(#pageRadius2)"><path d="M4 0 h 28 L 44 12 v 36 H 4 Z" fill="whitesmoke"></path><path d="M4 0 h 28 L 44 12 v 36 H 4 Z" fill="url(#pageGradient2)"></path></g><g transform="translate(32 12) rotate(-90)"><rect width="40" height="48" fill="#dbdbdb" rx="4" ry="4" clip-path="url(#foldCrop)"></rect></g><g id="label"><rect fill="#a8a8a8" x="4" y="34" width="40" height="14" clip-path="url(#pageRadius2)"></rect></g><g id="labelText" transform="translate(4 34)">
+                                    <svg viewBox="0 0 48 48" width="30" height="30" style="max-width: 100%;"><defs><clipPath id="pageRadius2"><rect x="4" y="0" rx="4" ry="4" width="40" height="48"></rect></clipPath><clipPath id="foldCrop"><rect width="40" height="12" transform="rotate(-45 0 12)"></rect></clipPath><linearGradient x1="100%" y1="0%" y2="100%" id="pageGradient2"><stop stop-color="white" stop-opacity="0.25" offset="0%"></stop><stop stop-color="white" stop-opacity="0" offset="66.67%"></stop></linearGradient></defs><g clip-path="url(#pageRadius2)"><path d="M4 0 h 28 L 44 12 v 36 H 4 Z" fill="whitesmoke"></path><path d="M4 0 h 28 L 44 12 v 36 H 4 Z" fill="url(#pageGradient2)"></path></g><g transform="translate(32 12) rotate(-90)"><rect width="40" height="48" fill="#dbdbdb" rx="4" ry="4" clip-path="url(#foldCrop)"></rect></g><g id="label"><rect fill="#a8a8a8" x="4" y="34" width="40" height="14" clip-path="url(#pageRadius2)"></rect></g><g id="labelText" transform="translate(4 34)">
                                       <text x="20" y="10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="9" fill="white" text-anchor="middle" style="font-weight: bold; text-align: center; pointer-events: none; text-transform: none; user-select: none;">
                                         {{$message['content']['fileext']}}
                                       </text></g>
@@ -376,9 +376,6 @@
                 </span>
               </p>
               @endif
-              <input id="file" type="file" 
-                accept=".jpg,.png,.gif,.mp4,.pdf,.doc,.docx,.txt,.md,.pptx,.ppt,.zip"
-                wire:model="file" class="hidden">
             </div>
               <div class="messaging-input__button emoji-button {{ $isEmojiPicker?'active':'' }}" role="button" aria-roledescription="button"
                 wire:click="$toggle('isEmojiPicker')">
@@ -399,8 +396,6 @@
                   </svg>
               </div>
               <div tabindex="0" class="rfu-dropzone rfu-dropzone---accept" style="position: relative;">
-
-
                   <div class="messaging-input__input-wrapper">
                       <div class="rta str-chat__textarea">
                         <textarea
@@ -420,7 +415,9 @@
                   </div>
               </div>
               
-              
+              <input name="file" type="file" id="file"
+                  accept=".jpg,.png,.gif,.mp4,.pdf,.doc,.docx,.txt,.md,.pptx,.ppt,.zip"
+                  wire:model="file" class="hidden">
               <label for="file" class="messaging-input__button @if($file) active @endif" role="button" aria-roledescription="button">
                 <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 512 512" width="20"><path d="m256 512c-141.164062 0-256-114.835938-256-256s114.835938-256 256-256 256 114.835938 256 256-114.835938 256-256 256zm0-480c-123.519531 0-224 100.480469-224 224s100.480469 224 224 224 224-100.480469 224-224-100.480469-224-224-224zm0 0"/><path d="m368 272h-224c-8.832031 0-16-7.167969-16-16s7.167969-16 16-16h224c8.832031 0 16 7.167969 16 16s-7.167969 16-16 16zm0 0"/><path d="m256 384c-8.832031 0-16-7.167969-16-16v-224c0-8.832031 7.167969-16 16-16s16 7.167969 16 16v224c0 8.832031-7.167969 16-16 16zm0 0"/></svg> 
               </label>
@@ -583,6 +580,9 @@
 
   .messaging-input__button.active svg path {
       fill: #005fff!important
+  }
+  .str-chat.dark .str-chat__messaging-input{
+    color: #fff;
   }
 </style>
 <script>

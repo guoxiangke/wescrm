@@ -49,6 +49,7 @@ class WechatMessage extends Model
         6, // File文件
         34, // Voice
         43, // Video
+        496, // 49+6
     ];
 
     const APP_MSG_TYPES = [
@@ -69,12 +70,12 @@ class WechatMessage extends Model
         // "msgType":1,"messageType":2,"content":"我通过了你的朋友验证请求，现在我们可以开始聊天了"
         'template'=>1, //发送带模版的文本 @see WechatBot::send(167)
         'image'=>3, // Img
-        'voiceLink'=>301, //自定义 49文件 点击▶️收听 
         'url'=>5,// 5表示链接，
         'file'=>6,// 6表示文件
         'roomChatRecords'=>19,// 19表示群聊的聊天记录，
         'miniapp'=>331, //自定义 331 miniapp
         'voice'=>34, // Voice
+        'voiceLink'=>301, //自定义 49文件 点击▶️收听 
         'requestFriend' => 37,
         // 收到好友请求
             // "msgType":37 "messageType":2  <msg encryptusername="v3_xx@stranger" ticket="v4_xxx@stranger"  fromnickname=\"天空蔚蓝\" content=\"你好\"
@@ -83,10 +84,11 @@ class WechatMessage extends Model
         'video'=>43, // Video 
         'emoji'=>47, // emoji
         'geo'=>48, // 地理位置
-        'file'=>49, // 文件 // 49 点击▶️收听
+        'file'=>496, // 文件 // 49 点击▶️收听
         'refermsg'=>491, //引用  57
         'addByIm' =>65, //  checked 
             // 我是xxx的xxx，添加我的企业微信与我联系吧。
+        'hongbao'=>2001,//自定义 2001 红包
         'agreeAddByIm' => 10000, //25984xxx7841966@openim
             // "msgType":10000, ,"content":"你被\"天空蔚蓝\"移出群聊"
             // 对方为企业微信用户，<_wc_custom_link_ color="#2782D7" href="https://weixin.qq.com/cgi-bin/readtemplate?t=work_wechat/about">了解更多</_wc_custom_link_>。

@@ -133,7 +133,7 @@ class WeijuController extends Controller
             // 0:简单文本消息 
             // 3:音频：点击▶️收听
         $appmsgType = "init";
-        if(Str::startsWith($wechatMessage['content'], '<?xml ')) {
+        if(Str::startsWith($wechatMessage['content'], '<?xml ') || Str::startsWith($wechatMessage['content'], '<msg')) {
             $msg = xStringToArray($wechatMessage['content']);
             if(Arr::has($msg, 'appmsg.type')){
                 $msg = $msg['appmsg'];
@@ -146,7 +146,6 @@ class WeijuController extends Controller
                         Log::debug(__METHOD__, ['XML消息', '音频：点击▶️收听']);
                         $content['content'] = $msg['title'];
                         $content['url'] = $msg['url'];
-                        $wechatMessage['content'] = $content;
                         break;
                     case '33':// 49文件
                         $wechatMessage['msgType'] = 331;//'miniapp'=>331, //自定义 331 miniapp
@@ -159,35 +158,39 @@ class WeijuController extends Controller
                         Log::debug(__METHOD__, ['XML消息', 'mp4视频', $msg]);
                         break;
                     case '6': //文件
+                        $wechatMessage['msgType'] = 496;
                         $content['title'] = $msg['title'];
                         $content['totallen'] = $msg['appattach']['totallen'];
                         $content['fileext'] = $msg['appattach']['fileext'];
                         $content['md5'] = $msg['md5'];
                         Log::debug(__METHOD__, ['XML消息', "收到文件"]);
-                        // info($content);
+                        info($content);
                         $wechatMessage['content'] = $content;
                         break;
                     case '57': // 49文件 //引用消息并回复 
                         //自处理类型 49文件=>491引用 
                         $wechatMessage['msgType'] = 491;
                         
-                        $tmpType = $msg['refermsg']['type'];
-                        $types = array_flip(WechatMessage::MSG_TYPES);
-                        $tmpTypeName = $types[$tmpType];
+                        // $tmpType = $msg['refermsg']['type'];
+                        // $types = array_flip(WechatMessage::MSG_TYPES);
+                        // $tmpTypeName = $types[$tmpType];
                         $content['content'] = $msg['title'];
                         if($msg['refermsg']['type'])
                         $content['refermsg'] = $msg['refermsg'];
                         // $msg['refermsg']['type'] == 1; 引用文字 
                         // $msg['refermsg']['type'] == 3; 引用图片
                         // $msg['refermsg']['type'] == 49; 引用文件
-                        $wechatMessage['content'] = $content;
+                        // $msg['refermsg']['type'] == 43; 引用视频
                         if($msg['refermsg']['type'] == 3){
-                            $wechatMessage['content']['refermsg']['content'] = "[图片]";
+                            $content['refermsg']['content'] = "[图片]";
                         }
                         if($msg['refermsg']['type'] == 49){
-                            $wechatMessage['content']['refermsg']['content'] = "[文件]";
+                            $content['refermsg']['content'] = "[文件]";
                         }
-                        Log::debug(__METHOD__, ['XML消息', "引用消息"]);
+                        if($msg['refermsg']['type'] == 43){
+                            $content['refermsg']['content'] = "[视频]";
+                        }
+                        Log::debug(__METHOD__, ['XML消息', "引用消息", $msg['refermsg']['type']]);
                         break;
                     case '19': //群聊的聊天记录
                         $items = xStringToArray($msg['recorditem']);
@@ -201,12 +204,18 @@ class WeijuController extends Controller
                             $dataitem['desc'] = $item['datadesc'];
                             $content['dataitems'][] = $dataitem;
                         }
-                        $wechatMessage['content'] = $content;
+                        break;
+                    case '2001': //微信红包 49=>2001
+                        $wechatMessage['msgType'] = 2001;
+                        $content['iconurl'] = $msg['iconurl'];
+                        $content['content'] = $msg['title'];
+                        Log::debug(__METHOD__, ['<msg消息', '收到名片消息', $content['content']]);
                         break;
                     default:
                         Log::error(__METHOD__, ['XML消息', '未处理', $appmsgType]);
                         break;
                 }
+                $wechatMessage['content'] = $content;
             }elseif(Arr::has($msg, 'videomsg')){
                 $content['length'] = $msg['videomsg']['@attributes']['length'];
                 $content['playlength'] = $msg['videomsg']['@attributes']['playlength'];
@@ -219,70 +228,57 @@ class WeijuController extends Controller
                 Log::debug(__METHOD__, ['XML消息', "收到图片"]);
             }
             else{
-                Log::debug(__METHOD__, ['XML消息', "待处理", $request['message']]);
+                // $msg = xStringToArray($wechatMessage['content']);
+                switch ($wechatMessage['msgType']) {
+                    case '3': //image
+                        Log::debug(__METHOD__, ['<msg消息', '收到图片']);
+                        break;
+                    case '34': //Voice
+                        Log::debug(__METHOD__, ['<msg消息', '收到语音']);
+                        $msg = $msg['voicemsg'];
+                        $content['voicelength'] = $msg['@attributes']['voicelength'];
+                        $content['length'] = $msg['@attributes']['length'];
+                        break;
+                    case '37': //向您发送好友请求
+                        // $msg['@attributes'] 字段
+                            // bigheadimgurl 
+                            // smallheadimgurl
+                            // encryptusername v3_xxx@stranger
+                            // ticket v4_xxx@stranger
+                        $v1 = $msg['@attributes']['encryptusername'];
+                        $v2 = $msg['@attributes']['ticket'];
+                        $wechatBot->friendAgree($v1, $v2, $msg['@attributes']['fromusername']);
+                        $text = "{$msg['@attributes']['fromnickname']}({$msg['@attributes']['fromusername']})向您发送好友请求\r\n请求信息：{$msg['@attributes']['content']}";
+                        $wechatMessage['content'] = ['content' => $text];
+                        Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
+                        break;
+                    
+                    case '42': //推荐名片
+                        $content['alias'] = $msg['@attributes']['alias'];
+                        $content['smallheadimgurl'] = $msg['@attributes']['smallheadimgurl'];
+                        $content['content'] = $msg['@attributes']['nickname'];
+                        $wechatMessage['content'] = $content;
+                        Log::debug(__METHOD__, ['<msg消息', '收到名片消息', $content['content']]);
+                        break;
+                    case '47': //emoji
+                        Log::debug(__METHOD__, ['<msg消息', '收到emoji']);
+                        $msg = $msg['emoji'];
+                        // $content['type'] = $msg['@attributes']['type']; //? 'type' => '2',
+                        $content['content'] = $msg['@attributes']['cdnurl'];
+                        $content['md5'] = $msg['@attributes']['md5'];
+                        $content['len'] = $msg['@attributes']['len'];
+                        $content['width'] = $msg['@attributes']['width'];
+                        $content['height'] = $msg['@attributes']['height'];
+                        $wechatMessage['content'] = $content;
+                        break;
+                    case '49': //2.我要歌颂，我要赞美.mp3
+                        Log::debug(__METHOD__, ['<msg消息', '收到mp3文件']);
+                        break;
+                    default:
+                        Log::debug(__METHOD__, ["待处理", $wechatMessage['msgType'], $request['message']]);
+                        break;
+                }
             }
-        }elseif(Str::startsWith($wechatMessage['content'], '<msg')){
-            $msg = xStringToArray($wechatMessage['content']);
-            
-            switch ($wechatMessage['msgType']) {
-                case '3': //image
-                    Log::debug(__METHOD__, ['<msg消息', '收到图片']);
-                    break;
-                case '34': //Voice
-                    Log::debug(__METHOD__, ['<msg消息', '收到语音']);
-                    $msg = $msg['voicemsg'];
-                    $content['voicelength'] = $msg['@attributes']['voicelength'];
-                    $content['length'] = $msg['@attributes']['length'];
-                    break;
-                case '37': //向您发送好友请求
-                    // $msg['@attributes'] 字段
-                        // bigheadimgurl 
-                        // smallheadimgurl
-                        // encryptusername v3_xxx@stranger
-                        // ticket v4_xxx@stranger
-                    $v1 = $msg['@attributes']['encryptusername'];
-                    $v2 = $msg['@attributes']['ticket'];
-                    $wechatBot->friendAgree($v1, $v2, $msg['@attributes']['fromusername']);
-                    $text = "{$msg['@attributes']['fromnickname']}({$msg['@attributes']['fromusername']})向您发送好友请求\r\n请求信息：{$msg['@attributes']['content']}";
-                    $wechatMessage['content'] = ['content' => $text];
-                    Log::debug(__METHOD__, ['好友请求', $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
-                    break;
-                
-                case '42': //推荐名片
-                    $content['alias'] = $msg['@attributes']['alias'];
-                    $content['smallheadimgurl'] = $msg['@attributes']['smallheadimgurl'];
-                    $content['content'] = $msg['@attributes']['nickname'];
-                    $wechatMessage['content'] = $content;
-                    Log::debug(__METHOD__, ['<msg消息', '收到名片消息', $content['content']]);
-                    break;
-                case '47': //emoji
-                    Log::debug(__METHOD__, ['<msg消息', '收到emoji']);
-                    $msg = $msg['emoji'];
-                    // $content['type'] = $msg['@attributes']['type']; //? 'type' => '2',
-                    $content['content'] = $msg['@attributes']['cdnurl'];
-                    $content['md5'] = $msg['@attributes']['md5'];
-                    $content['len'] = $msg['@attributes']['len'];
-                    $content['width'] = $msg['@attributes']['width'];
-                    $content['height'] = $msg['@attributes']['height'];
-                    $wechatMessage['content'] = $content;
-                    break;
-                case '49': //2.我要歌颂，我要赞美.mp3
-                    Log::debug(__METHOD__, ['<msg消息', '收到mp3文件']);
-                    break;
-                default:
-                    Log::debug(__METHOD__, ['<msg开头信息', "待处理", $wechatMessage['msgType'], $request['message']]);
-                    break;
-            }
-
-            // else if(Arr::has($msg, 'img')){ //以<msg> <img 开头 
-            //     $appmsgType = 'image';
-            //     $md5 = $msg['img']['@attributes']['md5'];
-            //     $size = $msg['img']['@attributes']['length'];
-            //     // TODO 如果已经下载了，不再下载，引用之前的链接文件！
-            //     Log::debug(__METHOD__, ['接收到图片', $md5, $size]);
-            // }else{
-            //     Log::debug(__METHOD__, ["待处理复杂XML消息", $request['message']]);
-            // }
         }elseif(Str::startsWith($wechatMessage['content'], '<sysmsg')){
             $msg = xStringToArray($wechatMessage['content']);
             switch ($wechatMessage['msgType']) {
@@ -381,6 +377,7 @@ class WeijuController extends Controller
         
         $needSave = false;
         // TODO do in queue! 49 点击▶️收听， 不需要下载 !in_array($appmsgType,[3,33])
+        info($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES);
         if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES)){
             $needSave = true;
             // 下载 文件更新 content为链接
