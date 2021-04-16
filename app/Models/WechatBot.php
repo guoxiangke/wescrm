@@ -257,10 +257,9 @@ class WechatBot extends Model
                 'type' => $type
             ];
             $this->contacts()->syncWithoutDetaching($attach);
-            Log::info(__METHOD__, [$wxid, $contact]);
             return $contact;
         }else{
-            Log::error(__METHOD__, [$response->json()]);
+            Log::error(__METHOD__, [$data, $response->json()]);
         }
     }
 

@@ -124,6 +124,7 @@ class WebChat extends Component
                         'content'=> $this->file->temporaryUrl()
                     ];
                     $this->wechatBot->send((array)$wxid, $wechatContent);
+                    return;
                     break;
                 case 'mp4':
                     $wechatContent->type = WechatContent::TYPE_VIDEO;
@@ -150,6 +151,7 @@ class WebChat extends Component
         }// end发送文件
 
         if(trim($this->content)=='') return; //TODO 空消息 不提交
+        $wechatContent->type = WechatContent::TYPE_TEXT;
         $content = ['content'=>$this->content];
         // $content = compact('data');
         $this->editing->content = $content;

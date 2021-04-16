@@ -117,7 +117,7 @@ class WeijuController extends Controller
                 $wxid = $wechatMessage['from_contact_id'];
                 $contact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['stranger']);// type=3
             }
-            $wechatMessage['from_contact_id'] = $contact->id;
+            if($contact) $wechatMessage['from_contact_id'] = $contact->id;
         }else{
             if($wechatMessage['from_contact_id'] !== null){
                 $contact = WechatContact::firstWhere('userName', $wechatMessage['from_contact_id']);
