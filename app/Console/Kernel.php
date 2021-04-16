@@ -25,7 +25,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        // 每小时查看是否掉线
         $schedule->command('wechat:islive')->hourly();
+        // 每天同步联系人信息 与 标签
+        $schedule->command('wechat:sync')->dailyAt('0:45');
     }
 
     /**

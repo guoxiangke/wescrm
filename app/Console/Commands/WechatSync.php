@@ -8,21 +8,21 @@ use App\Services\Wechat;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-class WechatIsLive extends Command
+class WechatSync extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'wechat:islive';
+    protected $signature = 'wechat:sync';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Check wechat is live';
+    protected $description = 'Sync Contact and tags from wechat';
 
     /**
      * Create a new command instance.
@@ -43,12 +43,18 @@ class WechatIsLive extends Command
     {
         WechatBot::active()->each(function(WechatBot $wechatBot){
             $wechat = new Wechat($wechatBot->wxid);
-            $response = $wechat->who();
+            $response = $wechat->isOnline();
             if($response->ok() && $response['code'] == 10001){
                 $wechatBot->update(['login_at'=> null]);
                 Log::info(__METHOD__, ['已下线', $wechatBot->nickName]);
             }else{
-                Log::info(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
+                // Log::debug(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
+                $wechatBot->sync();
+                $wechatBot->send(['filehelper'], WechatContent::make([
+                    'name' => 'tmp',
+                    'type' => WechatContent::TYPE_TEXT,
+                    'content' => ['content'=> "同步联系人和标签完成"]
+                ]));
             }
         });
 

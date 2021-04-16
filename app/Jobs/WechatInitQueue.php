@@ -96,76 +96,11 @@ class WechatInitQueue implements ShouldQueue
                     Log::error(__METHOD__, [__LINE__, $response]);
                 }
                 
-                // InitWechat::dispatch($Wxid); // 500联系人init()需要2分钟 
                 Log::info("InitWechat: 正在载入数据 {$wechatBotData['userName']}");
-                $wechat->init(); //为什么要init，不init可以用吗？
+                $wechatBot->sync();
+                // $wechat->init(); //为什么要init，不init可以用吗？
                 Log::info("InitWechat: 载入数据完毕 {$wechatBotData['userName']}");
 
-                // 初始化标签
-                // 1.记录 手机微信里的wxLabels ID和对应名称labelName
-                $wxLabels = [];
-                $response = $wechatBot->wechat->getLables();
-                if($response->ok() && $response['code'] == 1000){
-                    foreach ($response['data'] as $label) {
-                        $wxLabels[$label['labelID']] = $label['labelName'];
-                    }
-                }else{
-                    Log::error(__METHOD__, [__LINE__, '初始化标签', '失败', $response]);
-                }
-                // 2.记录 每个联系人的标签
-                $tags = [];
-                $tagWith = 'wechat-contact-team-' . $this->team->id;
-
-                # 保存 bot 的通讯录信息（不含群成员）
-                $response = $wechat->getAllContacts();
-                if($response->ok() && $response['code'] == 1000){
-                    Log::info("InitWechat: 保存通讯录 {$wechatBotData['userName']}");
-                    $attachs = [];
-                    $teamOwnerId = $this->team->owner->id;
-                    foreach ($response['data'] as $type => $values) {
-                        foreach ($values as $data) {
-                            ($contact = WechatContact::firstWhere('userName', $data['userName']))
-                                ? $contact->update($data) // 更新资料
-                                : $contact = WechatContact::create($data);
-
-                            $remark = $data['remark']??null;
-                            $nickName = $data['nickName']??null;
-                            $remark = $remark??$nickName;
-                            $attachs[$contact->id] = [
-                                'remark' => $remark,
-                                'type' => WechatContact::TYPES[$type],
-                                    // 'public'=>0, // 0
-                                    // 'friend'=>1, // 1
-                                    // 'group'=>2, // 2
-                                    // 'stranger'=>3, // 3
-                                'seat_user_id' => $teamOwnerId,
-                            ];// @see https://laravel.com/docs/8.x/eloquent-relationships#updating-many-to-many-relationships
-                            
-                            // 2.记录 每个联系人的标签
-                            if($type == 'friend' && isset($data['labelIdList'])){
-                                $wxLabelIds = explode(',', $data['labelIdList']);
-                                foreach ($wxLabelIds as $wxLabelId) {
-                                    $tags[$contact->id][] = $wxLabels[$wxLabelId];
-                                }
-                                // $wechatBotContact->attachTag($tagName, $tagWith);
-                            }
-                        }
-                        Log::info(__METHOD__, ["InitWechat", "保存通讯录", $type, count($values)]);
-                    }
-                    $wechatBot->contacts()->syncWithoutDetaching($attachs);
-                    // 3.写入 每个联系人的标签
-                    foreach ($tags as $contactId => $tagNames) {
-                        $wechatBotContact = WechatBotContact::where('wechat_bot_id', $wechatBot->id)
-                            ->where('wechat_contact_id', $contactId)
-                            ->first();
-                        foreach ($tagNames as $tagName) {
-                            $wechatBotContact->attachTag($tagName, $tagWith);
-                        }
-                    }
-                }else{
-                    Log::error(__METHOD__, [__LINE__, $response]);
-                }
-                
                 $response = $wechat->setCallBackUrl();
                 if($response->ok() && $response['code'] == 1){
                     Log::debug(__METHOD__, ["setCallBackUrl"," 成功"]);
@@ -174,8 +109,6 @@ class WechatInitQueue implements ShouldQueue
                 }
 
                 // 更新在线客户端数量
-                $loginCounts = option('weiju.clients.live', 0);
-                option(['weiju.clients.live' => ++$loginCounts]);
                 
                 $loop = false;
                 break;

@@ -9,7 +9,7 @@ use App\Services\Weiju;
 use App\Models\WechatBot;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use App\Models\Membership;
+use Illuminate\Support\Facades\Artisan;
 use App\Models\WechatContact;
 
 class Weixin extends Component
@@ -63,9 +63,9 @@ class Weixin extends Component
 
     public function mount(Weiju $weiju)
     {
+        Artisan::call('wechat:islive'); // check and reset logined counts
         $response = $weiju->getStatus();
         if(is_null($response) || $response->failed()) return $this->msg = "系统错误， API接口登录失败，请联系管理员！";
-        // info($response->body());
         // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
         // "{"code":1,"msg":"登录成功","num":2,"expiretime":"2021-03-02 11:21:16","data":{"apikey":"exxx
         
@@ -75,6 +75,11 @@ class Weixin extends Component
         $user = auth()->user();
         $team = $user->currentTeam;
         $this->teamName = $team->name;
+        // prepared wxid for 弹窗登录
+        $wechatBot = WechatBot::firstwhere('team_id', $team->id);
+        if($wechatBot) {
+            $this->wxid = $wechatBot->wxid;
+        }
         // 第一次登录流程：
             // 1. 判断是否获取到token or return Failed Msg 给管理后台.
             // 2. 获得token后，返回 到期时间，可登录微信数量 给管理后台
@@ -117,16 +122,14 @@ class Weixin extends Component
             
         }
 
-        // 付费管理2: 座席过期
-        if(!$user->ownsTeam($team)){
-            $membership = Membership::firstWhere(['team_id'=>$team->id,'user_id'=>$user->id]);
-            // dd($membership->expires_at);
-            if($membership->expires_at < now()){
-                return $this->msg = "对不起，座席使用时间已过期，您暂时无法管理Bot，请与Bot管理员联系付费使用！";
-            }
-        }
-
-        $wechatBot = WechatBot::firstwhere('team_id', $team->id);
+        // // 付费管理2: 座席过期
+        // if(!$user->ownsTeam($team)){
+        //     $membership = Membership::firstWhere(['team_id'=>$team->id,'user_id'=>$user->id]);
+        //     // dd($membership->expires_at);
+        //     if($membership->expires_at < now()){
+        //         return $this->msg = "对不起，座席使用时间已过期，您暂时无法管理Bot，请与Bot管理员联系付费使用！";
+        //     }
+        // }
         if($wechatBot){ //说明已经绑定过了！
             $this->wechatBot = $wechatBot;
 
@@ -149,10 +152,7 @@ class Weixin extends Component
             
             // $this->listened_rooms = $wechatBot->getMeta('listened_rooms', ['xxxx@chatroom']); // 只接收少数几个群的群消息
             
-            $this->wxid = $wechatBot->wxid;
-            $wechat = new Wechat($this->wxid);
-            // test 
-            // $wechatBot->addBySearch('calebxyz')->json();
+            $wechat = $wechatBot->wechat;
 
             $this->expiresAt = $wechatBot->expires_at->diffForHumans();
             $this->allExpiresAt = option('weiju.expired_at');
@@ -179,13 +179,13 @@ class Weixin extends Component
         // if($responseWho['code'] == -13){ // "{"code":-13,"msg":"您已退出微信","data":{}}"
         //     return $this->msg = "主动退出iPad登录后，需等5分钟再试!";
         // }
-        return $this->msg = "主动退出iPad登录后，需等5分钟再试! " . $response['msg']; // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
+        return $this->msg = "主动退出iPad登录后，需等5分钟再试! <br/>" . $response['msg']; // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
     }
 
 
     public function logout()
     {
-        $wechat = new Wechat($this->wxid);
+        $wechat = $this->wechatBot->wechat;//new Wechat($this->wxid);
         $response = $wechat->logout();
         $this->wechatBot->update(['login_at'=>null]);
         $this->msg = "登出：" . $response['msg']. ", 请在手机上确认 退出iPad微信 即可。";

@@ -7,7 +7,7 @@
 <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8  space-y-4">
     <div class="info">
         @if($msg)
-            <h2>{{ $msg }}</h2>
+            <h2>{!! $msg !!}</h2>
         @endif
 
         @if($showRemind)
