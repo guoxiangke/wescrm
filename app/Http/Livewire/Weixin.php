@@ -63,7 +63,6 @@ class Weixin extends Component
 
     public function mount(Weiju $weiju)
     {
-        Artisan::call('wechat:islive'); // check and reset logined counts
         $response = $weiju->getStatus();
         if(is_null($response) || $response->failed()) return $this->msg = "系统错误， API接口登录失败，请联系管理员！";
         // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
@@ -80,6 +79,8 @@ class Weixin extends Component
         if($wechatBot) {
             $this->wxid = $wechatBot->wxid;
         }
+        info($this->wxid,$response->json());
+        Artisan::call('wechat:islive'); // check and reset logined counts
         // 第一次登录流程：
             // 1. 判断是否获取到token or return Failed Msg 给管理后台.
             // 2. 获得token后，返回 到期时间，可登录微信数量 给管理后台
@@ -185,8 +186,8 @@ class Weixin extends Component
 
     public function logout()
     {
-        $wechat = $this->wechatBot->wechat;//new Wechat($this->wxid);
-        $response = $wechat->logout();
+        // $wechat = $this->wechatBot->wechat();//new Wechat($this->wxid);
+        $response = $this->wechatBot->wechat->logout();
         $this->wechatBot->update(['login_at'=>null]);
         $this->msg = "登出：" . $response['msg']. ", 请在手机上确认 退出iPad微信 即可。";
 

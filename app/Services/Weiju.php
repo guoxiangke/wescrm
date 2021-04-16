@@ -36,7 +36,8 @@ class Weiju {
             "content-type" => "application/json"
         ];
         // 弹窗登录 || 扫码登录
-        return rescue(fn()=>$this->http->withHeaders($headers)->post($endPoint, $Wxid?compact('Wxid'):[]), null, false);
+        $data = $Wxid?compact('Wxid'):[];
+        return rescue(fn()=>$this->http->withHeaders($headers)->post($endPoint, $data), null, false);
     }
 
 }

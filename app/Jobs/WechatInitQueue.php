@@ -96,10 +96,8 @@ class WechatInitQueue implements ShouldQueue
                     Log::error(__METHOD__, [__LINE__, $response]);
                 }
                 
-                Log::info("InitWechat: 正在载入数据 {$wechatBotData['userName']}");
                 $wechatBot->sync();
                 // $wechat->init(); //为什么要init，不init可以用吗？
-                Log::info("InitWechat: 载入数据完毕 {$wechatBotData['userName']}");
 
                 $response = $wechat->setCallBackUrl();
                 if($response->ok() && $response['code'] == 1){
