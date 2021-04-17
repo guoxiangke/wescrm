@@ -366,8 +366,8 @@ class WeijuController extends Controller
             // }
 
             $wxid = $wechatMessage['conversation'];
-            $contact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['group']);//2
-            $wechatMessage['conversation'] = $contact->id;
+            $conversation = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['group']);//2
+            $wechatMessage['conversation'] = $conversation->id;
         }
         // 为什么1条信息，数据库中有2个记录，同样的msgId？
             // server重发 发送2次post
@@ -428,15 +428,21 @@ class WeijuController extends Controller
         if(env('local') && $needSave) Storage::put("wechat/message.".$msg->id.".rawcontent", $rawContent);
         
         //  1.响应内容为文本 2.开启了autoreply  // 只响应第一个匹配的
-        // TODO check 且不是群
         if($wechatBot->getMeta('wechatAutoReply', false) && $wechatMessage['msgType'] == WechatMessage::MSG_TYPES['text']) {
             $keywords = $wechatBot->autoReplies()->pluck('keyword','wechat_content_id');
-            $to = [$wechatMessage['sendUser']]; // TODO 传 WechatContact Obj
+            $to = $wechatMessage['sendUser']; // TODO 传 WechatContact Obj
+            if($isFromRoom){
+                if(!$wechatBot->getMeta('wechatAutoReplyRoom', false)){
+                    return; //是否开启群关键词回复
+                }
+                $to = $wechatMessage['fromUser'];
+            }
+            
             foreach ($keywords as $id => $keyword) {
                 if(Str::is($keyword, $rawContent)){
                     // TODO preg;
                     // @see https://laravel.com/docs/8.x/helpers#method-str-is
-                    return $wechatBot->send($to, WechatContent::find($id));//send(Array $contacts, WechatContent $wchatContent)
+                    return $wechatBot->send((array)$to, WechatContent::find($id));//send(Array $contacts, WechatContent $wchatContent)
                 }
             }
 

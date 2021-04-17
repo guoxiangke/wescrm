@@ -26,6 +26,7 @@ class Weixin extends Component
     
 
     public $wechatAutoReply;//boolean
+    public $wechatAutoReplyRoom;
     public $wechatListenRoom;
     public $wechatListenRoomAll;
     public $wechatListenGh;
@@ -44,7 +45,7 @@ class Weixin extends Component
     
     public function updated($name,$value)
     {
-        if(in_array($name,['wechatWeiju','wechatWebhook','wechatWebhookUrl','wechatWebhookSecret','wechatTuingReply','wechatTulingKey','wechatTulingId','wechatAutoReply','wechatListenRoom','wechatListenRoomAll','wechatListenGh'])){
+        if(in_array($name,['wechatAutoReplyRoom','wechatWeiju','wechatWebhook','wechatWebhookUrl','wechatWebhookSecret','wechatTuingReply','wechatTulingKey','wechatTulingId','wechatAutoReply','wechatListenRoom','wechatListenRoomAll','wechatListenGh'])){
             $this->wechatBot->setMeta($name, $value);
         }
     }
@@ -134,6 +135,7 @@ class Weixin extends Component
         if($wechatBot){ //说明已经绑定过了！
             $this->wechatBot = $wechatBot;
 
+            $this->wechatAutoReply = $wechatBot->getMeta('wechatAutoReplyRoom', false);
             $this->wechatAutoReply = $wechatBot->getMeta('wechatAutoReply', false);
             $this->wechatListenRoom = $wechatBot->getMeta('wechatListenRoom', false);
             $this->wechatListenRoomAll = $wechatBot->getMeta('wechatListenRoomAll', false);

@@ -30,10 +30,9 @@ class WechatMessageObserver
         $wechatWebhook = $wechatBot->getMeta('wechatWebhook', false);
         $wechatWebhookUrl = $wechatBot->getMeta('wechatWebhookUrl', false);
         $wechatWebhookSecret = $wechatBot->getMeta('wechatWebhookSecret', false);
-
         if($wechatWebhook && $wechatWebhookUrl && $wechatWebhookSecret){
             $data = collect($wechatMessage)->except(['wechat_bot', 'conversation', 'wechat_bot_id', 'msgId', 'deleted_at', 'updated_at', 'contact.deleted_at', 'contact.updated_at'])->toArray();
-            $data['type'] = WechatContent::TYPES[$data['type']];
+            // $data['type'] = WechatContent::TYPES[$data['type']];
             WebhookCall::create()
                 ->url($wechatWebhookUrl)
                 ->payload($data)

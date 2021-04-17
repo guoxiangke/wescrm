@@ -57,6 +57,12 @@
                     :checked="$wechatAutoReply" 
                     label="关键词自动回复(AutoReply)"
                     />
+                <x-input.toggle 
+                    wire:model="wechatAutoReplyRoom" 
+                    id="wechatAutoReplyRoom" 
+                    :checked="$wechatAutoReplyRoom" 
+                    label="关键词自动回复群监听"
+                    />
                 @if($wechatAutoReply)
 
                 <x-input.toggle 

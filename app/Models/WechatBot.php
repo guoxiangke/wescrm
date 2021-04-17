@@ -161,13 +161,13 @@ class WechatBot extends Model
             if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
                 Log::info(__METHOD__, ['主动发送成功', $Wxid, $wxid]);
                 // 主动发送消息，需要主动记录 客服座席 user_id to message
-                $wechatBot = WechatBot::firstWhere('team_id', $teamId);
+                // $wechatBot = WechatBot::firstWhere('team_id', $teamId);
                 $contact = WechatContact::where('userName', $wxid)->firstOrFail(); //初始化还未完成，就发送消息了！
                 $data = [
                     // 'msgId'=>NULL,
                     'seat_user_id' => $seatUserId, // 座席 用户ID
                     // 'from_contact_id' => null, //主动发送时，应该bot的WechatContact->id, 故为NULL
-                    'wechat_bot_id' => $wechatBot->id,  //WechatBot
+                    'wechat_bot_id' => $this->id,  //WechatBot
                     'conversation' => $contact->id, //WechatContact
                     'content' => $content,
                     // 'type' => 3, // 3:bot 主动发消息
