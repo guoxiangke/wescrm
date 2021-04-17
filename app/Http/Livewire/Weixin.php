@@ -80,7 +80,6 @@ class Weixin extends Component
         if($wechatBot) {
             $this->wxid = $wechatBot->wxid;
         }
-        info($this->wxid,$response->json());
         Artisan::call('wechat:islive'); // check and reset logined counts
         // 第一次登录流程：
             // 1. 判断是否获取到token or return Failed Msg 给管理后台.

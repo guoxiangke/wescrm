@@ -18,7 +18,7 @@ class WeijuController extends Controller
 {
 
     public function test(Request $request){
-        info($request->all());
+        Log::debug(__METHOD__, $request->all());
         return true;
     }
     /**
@@ -164,7 +164,6 @@ class WeijuController extends Controller
                         $content['fileext'] = $msg['appattach']['fileext'];
                         $content['md5'] = $msg['md5'];
                         Log::debug(__METHOD__, ['XML消息', "收到文件"]);
-                        info($content);
                         $wechatMessage['content'] = $content;
                         break;
                     case '57': // 49文件 //引用消息并回复 
@@ -377,7 +376,6 @@ class WeijuController extends Controller
         
         $needSave = false;
         // TODO do in queue! 49 点击▶️收听， 不需要下载 !in_array($appmsgType,[3,33])
-        info($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES);
         if(in_array($wechatMessage['msgType'], WechatMessage::ATTACHMENY_MSG_TYPES)){
             $needSave = true;
             // 下载 文件更新 content为链接
@@ -405,7 +403,6 @@ class WeijuController extends Controller
                     do {
                         sleep(1);
                         $result = $upyun->status($tasks);
-                        info($result);
                         $count++;
                     } while ($result[$taskId] != 100 && $count <= 10);
                     $upyun->delete($path);

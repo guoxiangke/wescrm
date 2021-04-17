@@ -228,7 +228,6 @@ class Wechat {
     public function saveGroup($chatroom, $isShow=true):Response 
     {
         $data = array_merge($this->data, get_defined_vars());
-        info($data);
         return $this->http->post('/foreign/group/seveGroup', $data);
     }
     #  添加群成员
