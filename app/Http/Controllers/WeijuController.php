@@ -395,7 +395,9 @@ class WeijuController extends Controller
                         $result = $upyun->has($path);
                         $count++;
                     } while ($result==false && $count <= 10);
-                    $tasks = $upyun->silk($path);
+                    
+                    $saveAs = "/{$wechatBot->wxid}{$path}.mp3";
+                    $tasks = $upyun->silk($path, $saveAs);
                     $taskId = $tasks[0];
                     
                     //确保文件转换已完成
@@ -406,7 +408,9 @@ class WeijuController extends Controller
                         $count++;
                     } while ($result[$taskId] != 100 && $count <= 10);
                     $upyun->delete($path);
-                    $content['content'] = "{$cdn}.mp3";
+
+                    $newCdn = "https://silk.yongbuzhixi.com{$saveAs}";
+                    $content['content'] = $newCdn;
                     $wechatMessage['content'] = $content;
                     Log::debug(__METHOD__, ['语音消息处理完毕']);
                 }   

@@ -40,13 +40,13 @@ class Upyun {
         return compact('policy', 'authorization');
     }
 
-    public function silk($path)
+    public function silk($path, $saveAs)
     {
         // 使用时，按文档和个人需求填写tasks
         $tasks = array([
             'type' => 'audio',
             'avopts' => '/ab/20/ac/1/f/mp3',
-            'save_as' => "$path.mp3",
+            'save_as' => $saveAs,//"$path.mp3",
         ]);
         return $this->upyun->process($tasks, Upservice::$PROCESS_TYPE_MEDIA, $path);
     }
