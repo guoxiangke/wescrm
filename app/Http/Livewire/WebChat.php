@@ -293,6 +293,7 @@ class WebChat extends Component
     //     return 1;
     // }
     public $contacts;
+    public $lastMessageContacts;
     public $wechatMessages;
     public int $maxMessageId = 0;
     
@@ -350,6 +351,13 @@ class WebChat extends Component
             // search
             $this->updatedSearch();
         }
+        // 按最后消息排序 contatcs
+        $this->lastMessageContacts = [];
+        foreach($this->wechatMessages as $conversation){
+            $conversation = end($conversation); //最后一个对方发的消息
+            $this->lastMessageContacts[] = $conversation;
+        }
+        $this->lastMessageContacts = collect($this->lastMessageContacts)->sortBy([['created_at','desc']])->toArray();
         // Log::debug(__METHOD__, ['keys', array_keys($this->wechatMessages)]);
         return $this->wechatMessages;
     }

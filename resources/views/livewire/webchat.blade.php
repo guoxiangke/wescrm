@@ -85,9 +85,10 @@
         </div>
       </div>
       <div class="messaging__channel-list">
-        @foreach ($conversations as $contactId => $conversation)
+        @foreach ($lastMessageContacts as $cid => $conversation)
         @php
-            $conversation = end($conversation); //最后一个对方发的消息
+            $contactId = $conversation['conversation'];
+            // $conversation = end($conversation); //最后一个对方发的消息
             $time = $conversation['updated_at']??now();
             $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
             $name = $remarks[$contactId]??'G'.$contactsArray[$contactId]['id'];
@@ -97,7 +98,7 @@
             if(is_array($conversation['content'])) $content = $conversation['content']['content']??'新消息🆕';
             if(is_array($content)) $content = "未处理消息";
         @endphp
-        <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="c-{{$contactId}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
+        <div wire:click="$set('currentConversationId', {{$contactId}})" data-id="{{$cid}}" class="channel-preview__container {{ $currentConversationId===$contactId?'selected':'' }}">
           <div class="channel-preview__avatars">
             <img data-testid="avatar-img" src="{{$contactsArray[$contactId]['smallHead']?:$fallbackAvatar}}" alt="" class="str-chat__avatar-image str-chat__avatar-image--loaded">
           </div>
