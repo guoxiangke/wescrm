@@ -312,7 +312,7 @@ class WebChat extends Component
                     // Log::debug(__METHOD__, ['新消息中，包含的 contactIds', $contactIds->toArray()]);
                     // $this->contacts->keyBy('id')->toArray();
                     $addMoreIds = $contactIds->diff(collect($this->contacts)->keys());
-                    Log::debug(__METHOD__, ['新消息中，包含的 addMoreIds', count($this->contacts), $addMoreIds->toArray()]);
+                    // Log::debug(__METHOD__, ['新消息中，包含的 addMoreIds', count($this->contacts), $addMoreIds->toArray()]);
                     if($addMoreIds->count()){
                         $contacts = WechatContact::whereIn('id', $addMoreIds->all())->get();
                         $this->contacts = $this->contacts + $contacts->keyBy('id')->toArray();
