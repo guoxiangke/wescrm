@@ -66,7 +66,7 @@
                       wire:click="$set('currentConversationId', {{$contactId}})">
                       <li class="messaging-create-channel__user-result">
                         <div data-testid="avatar" class="str-chat__avatar str-chat__avatar--circle" style="width: 40px; height: 40px; flex-basis: 40px; line-height: 40px; font-size: 20px;">
-                          <img data-testid="avatar-imgs" src="{{ $contactsArray[$contactId]['smallHead']?:$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
+                          <img data-testid="avatar-imgs" src="{{ $contactsArray[$contactId]['smallHead']??$defaultAvatar }}" style="width: 40px; height: 40px; flex-basis: 40px; object-fit: cover;">
                         </div>
                         <div class="messaging-create-channel__user-result__details">
                           <span>{{$remark}}</span>
