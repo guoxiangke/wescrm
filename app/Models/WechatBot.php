@@ -270,11 +270,11 @@ class WechatBot extends Model
     }
 
     // call in queue
-    public function sync(){
+    public function syncContacts(){
         Log::info(__METHOD__,['sync begin',$this->userName]);
         $wechat = $this->wechat;
         // InitWechat::dispatch($Wxid); // 500联系人init()需要2分钟 
-        $wechat->init(); //为什么要init，不init可以用吗？
+        // $wechat->init(); //为什么要init，不init可以用吗？
         Log::info(__METHOD__,['init done',$this->userName]);
 
         // 初始化标签
@@ -288,9 +288,6 @@ class WechatBot extends Model
         }else{
             Log::error(__METHOD__, [__LINE__, '初始化标签', '失败', $response]);
         }
-        // 2.记录 每个联系人的标签
-        $tags = [];
-        $tagWith = 'wechat-contact-team-' . $this->team->id;
 
         # 保存 bot 的通讯录信息（不含群成员）
         $response = $wechat->getAllContacts();
@@ -302,6 +299,10 @@ class WechatBot extends Model
                     ($contact = WechatContact::firstWhere('userName', $data['userName']))
                         ? $contact->update($data) // 更新资料
                         : $contact = WechatContact::create($data);
+
+                    $wechatBotContact = WechatBotContact::where('wechat_bot_id', $this->id)
+                        ->where('wechat_contact_id', $contact->id)->first();
+                    if($wechatBotContact && $wechatBotContact->remark!==null) continue; //已经存在的不用更新，防止备注被覆盖！
 
                     $remark = $data['remark']??null;
                     $nickName = $data['nickName']??null;
@@ -325,21 +326,27 @@ class WechatBot extends Model
                         // $thisContact->attachTag($tagName, $tagWith);
                     }
                 }
-                Log::info(__METHOD__, ["SyncWechat", "保存通讯录", $type, count($values)]);
+                Log::info(__METHOD__, ["SyncWechat", "通讯录", $type, count($values)]);
             }
             $this->contacts()->syncWithoutDetaching($attachs);
-            // 3.写入 每个联系人的标签
-            foreach ($tags as $contactId => $tagNames) {
-                $wechatBotContact = WechatBotContact::where('wechat_bot_id', $this->id)
-                    ->where('wechat_contact_id', $contactId)
-                    ->first();
-                foreach ($tagNames as $tagName) {
-                    $wechatBotContact->attachTag($tagName, $tagWith);
-                }
-            }
-            Log::info(__METHOD__,['sync done',$this->userName]);
+            Log::debug(__METHOD__,['已同步', $this->wxid, $attachs]);
         }else{
             Log::error(__METHOD__, [__LINE__, $response]);
+        }
+    }
+
+    public function syncTags()
+    {
+        // 3.写入 每个联系人的标签
+        $tags = [];
+        $tagWith = 'wechat-contact-team-' . $this->team->id;
+        foreach ($tags as $contactId => $tagNames) {
+            $wechatBotContact = WechatBotContact::where('wechat_bot_id', $this->id)
+                ->where('wechat_contact_id', $contactId)
+                ->first();
+            foreach ($tagNames as $tagName) {
+                $wechatBotContact->attachTag($tagName, $tagWith);
+            }
         }
     }
 }

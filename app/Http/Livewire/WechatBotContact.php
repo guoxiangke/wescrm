@@ -42,7 +42,6 @@ class WechatBotContact extends Component
         $wechatBotContact->remark = trim($value);
         if($wechatBotContact->isDirty('remark')){
             $wechatBotContact->save();
-            Log::error(__METHOD__, ['called1', $wechatBotContact, $value]);
         }
     }
 
