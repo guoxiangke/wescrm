@@ -113,9 +113,7 @@ class WeijuController extends Controller
             
             $contact = WechatContact::firstWhere('userName', $wechatMessage['from_contact_id']);
             // 群里的某个非好友 成员 发言（处理之前初始化并没有保存为contact的情况）
-            if(!$contact) {
-                $wxid = $wechatMessage['from_contact_id'];
-                Log::debug(__METHOD__,['call addOrUpdateContact', $wechatMessage, $wxid]);
+            if(!$contact && $wxid = $wechatMessage['from_contact_id']) {
                 $contact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['stranger']);// type=3
             }
             if($contact) $wechatMessage['from_contact_id'] = $contact->id;
