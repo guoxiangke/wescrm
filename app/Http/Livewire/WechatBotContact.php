@@ -112,17 +112,6 @@ class WechatBotContact extends Component
         }, $this->editing->getTable() . '.csv');
     }
 
-    public function deleteSelected()
-    {
-        $deleteCount = $this->selectedRowsQuery->count();
-
-        $this->selectedRowsQuery->delete();
-
-        $this->showDeleteModal = false;
-
-        $this->notify('You\'ve deleted ' . $deleteCount . ' Models');
-    }
-
     public function makeBlankModel()
     {
         return Model::make(['date' => now(), 'status' => 'success']);
