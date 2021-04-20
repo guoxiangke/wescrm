@@ -278,7 +278,7 @@ class WechatBot extends Model
         Log::info(__METHOD__,['sync begin',$this->userName]);
         $wechat = $this->wechat;
         // InitWechat::dispatch($Wxid); // 500联系人init()需要2分钟 
-        // $wechat->init(); //为什么要init，不init可以用吗？
+        $wechat->init(); //为什么要init，不init可以用吗？
         Log::info(__METHOD__,['init done',$this->userName]);
 
         // 初始化标签
