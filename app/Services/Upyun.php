@@ -48,21 +48,21 @@ class Upyun {
             'avopts' => '/ab/20/ac/1/f/mp3',
             'save_as' => $saveAs,//"$path.mp3",
         ]);
-        return $this->upyun->process($tasks, Upservice::$PROCESS_TYPE_MEDIA, $path);
+        return rescue(fn() => $this->upyun->process($tasks, Upservice::$PROCESS_TYPE_MEDIA, $path), null, false);
     }
 
     public function status($tasks)
     {
-        return $this->upyun->queryProcessStatus($tasks);
+        return rescue(fn() => $this->upyun->queryProcessStatus($tasks), null, false);
     }
 
     public function has($path)
     {
-        return $this->upyun->has($path);
+        return rescue(fn() => $this->upyun->has($path), null, false);
     }
 
     public function delete($path)
     {
-        return $this->upyun->delete($path);
+        return rescue(fn() => $this->upyun->delete($path), null, false);
     }
 }

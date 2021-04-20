@@ -269,6 +269,12 @@ class WeijuController extends Controller
                         $content['height'] = $msg['@attributes']['height'];
                         $wechatMessage['content'] = $content;
                         break;
+                    case '48': //geo
+                        $content = $msg['location']['@attributes'];
+                        $content['content'] = $content['poiname'];
+                        $wechatMessage['content'] = $content;
+                        Log::debug(__METHOD__, ['<msg消息', '收到geo消息']);
+                        break;
                     case '49': //2.我要歌颂，我要赞美.mp3
                         Log::debug(__METHOD__, ['<msg消息', '收到mp3文件']);
                         break;
@@ -393,7 +399,7 @@ class WeijuController extends Controller
                     do {
                         $result = $upyun->has($path);
                         $count++;
-                    } while ($result==false && $count <= 10);
+                    } while ($result && $result==false && $count <= 10);
                     
                     $saveAs = "/{$wechatBot->wxid}{$path}.mp3";
                     $tasks = $upyun->silk($path, $saveAs);
@@ -405,7 +411,7 @@ class WeijuController extends Controller
                         sleep(1);
                         $result = $upyun->status($tasks);
                         $count++;
-                    } while ($result[$taskId] != 100 && $count <= 10);
+                    } while ($result && $result[$taskId] != 100 && $count <= 10);
                     $upyun->delete($path);
 
                     $newCdn = "https://silk.yongbuzhixi.com{$saveAs}";

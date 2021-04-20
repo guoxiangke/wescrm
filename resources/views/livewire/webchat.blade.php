@@ -246,7 +246,7 @@
                     @php
                       $content = $message['content']['content']??"暂未处理的{$message['msgType']}消息";
                       if(is_array($content)){//{"content":[]}
-                        $content = "内容为空，消息处理失败";
+                        $content = "消息处理失败，内容为空";
                       }
                       // info($message);
                       // info($content,[$message['id']]);
@@ -272,6 +272,11 @@
                                 <div class="str-chat__message-attachment str-chat__message-attachment--image str-chat__message-attachment--image str-chat__message-attachment--image--">
                                   <p>名片推荐：{{ $content }}  {{ $message['content']['alias']??''  }}</p>
                                   <img style="max-height: 100px;" src="{{ $message['content']['smallheadimgurl']??$defaultAvatar }}" data-testid="image-test">
+                                </div>
+                                @break
+                            @case(48)
+                                <div data-testid="message-text-inner-wrapper" class="str-chat__message-text-inner str-chat__message-simple-text-inner">
+                                  <p>收到位置消息：{{ $content }}<br/>请到手机微信查看</p>
                                 </div>
                                 @break
                             @case(47)
