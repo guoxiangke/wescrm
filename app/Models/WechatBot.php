@@ -155,6 +155,10 @@ class WechatBot extends Model
                 $content = ['content'=>$replaced];//$wchatContent->content;
                 $sendType = 'sendText';
             }
+            if(in_array($typeId,[5,6])){
+                $cnType = WechatContent::TYPES_CN[$typeId];
+                $content['content'] = "已发送{$cnType}消息,请到手机上查看";
+            }
             $contentWithTo = array_merge(['ToWxid'=> $wxid], $content);
             
             $response = $wechat->send($sendType, $contentWithTo);
