@@ -11,6 +11,7 @@ use App\Http\Livewire\DataTable\WithBulkActions;
 use App\Http\Livewire\DataTable\WithPerPagePagination;
 use App\Models\WechatBot;
 use App\Models\WechatContact;
+use App\Models\WechatMessage;
 use Illuminate\Support\Facades\Log;
 use Spatie\Tags\Tag;
 
@@ -70,11 +71,13 @@ class WechatBotContact extends Component
     }
 
     public $tagWith;
+    public $wechatBot;
     public function mount()
     {
         
         $currentTeamId = auth()->user()->currentTeam->id;
         $wechatBot = WechatBot::where('team_id', $currentTeamId)->firstOrFail();
+        $this->wechatBot = $wechatBot;
         $this->wechatBotId = $wechatBot->id;
         $this->editing = $this->makeBlankModel();
         $this->tagWith =  'wechat-contact-team-'.$currentTeamId;
@@ -84,6 +87,24 @@ class WechatBotContact extends Component
         // dd($this->tags);
     }
 
+    public function friendDel(Model $wechatBotContact)
+    {
+        $wxid = $wechatBotContact->contact->userName;
+        $response = $this->wechatBot->friendDel($wxid);
+        if($response->ok() && $response['code'] == 1000){
+            // 删除所有的消息
+            // ->messages->each(fn($item)=>$item->forceDelete())
+            // $user->posts()->each->delete();
+            // $w->messages->each->forceDelete();
+            // $wechatBotContact->messages()->delete();
+            WechatMessage::where('wechat_bot_id', $this->wechatBot->id)
+                ->where('conversation', $wechatBotContact->wechat_contact_id)
+                ->delete();
+            $wechatBotContact->delete();
+            $this->showEditModal = false;
+            $this->dispatchBrowserEvent('notify', 'Deleted!');
+        }
+    }
 
     public function detachTag(Model $wechatBotContact, string $tagName)
     {

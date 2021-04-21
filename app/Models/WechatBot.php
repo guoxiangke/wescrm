@@ -118,7 +118,6 @@ class WechatBot extends Model
         }
         
         $Wxid = $this->userName;
-        $wechat = new Wechat($Wxid);
         
         $typeName = WechatContent::TYPES[$typeId];
         $sendType = Str::camel("send_{$typeName}");//sendImage  sendText sendVideo sendCard sendUrl .strtoupper
@@ -161,7 +160,7 @@ class WechatBot extends Model
             }
             $contentWithTo = array_merge(['ToWxid'=> $wxid], $content);
             
-            $response = $wechat->send($sendType, $contentWithTo);
+            $response = $this->wechat->send($sendType, $contentWithTo);
             if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
                 Log::info(__METHOD__, ['主动发送成功', $Wxid, $wxid]);
                 // 主动发送消息，需要主动记录 客服座席 user_id to message
@@ -192,7 +191,7 @@ class WechatBot extends Model
     public function addFriend($ToWxid, $message="", $tryTimes = 3)
     {
         $Wxid = $this->userName;
-        $wechat = new Wechat($Wxid);
+        $wechat = $this->wechat;
         $message = $message?: '我是' . $this->nickName;
 
         // 搜索用户，获取v1、v2数据， rescue:网络出错是不报错、不终止，而是等待x秒重试3次
@@ -228,6 +227,8 @@ class WechatBot extends Model
     {
         WechatAgreeQueue::dispatch($v1, $v2, $this, $wxid)->delay(now()->addSeconds($delaySeconds));
     }
+
+    public function friendDel($wxid){ return $this->wechat->friendDel($wxid); }
 
 
     public function wechat()

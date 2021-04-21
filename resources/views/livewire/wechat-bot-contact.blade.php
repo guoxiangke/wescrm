@@ -196,6 +196,7 @@
             </x-slot>
 
             <x-slot name="footer">
+                <x-button.primary wire:click="friendDel({{$editing->id}})">微信拉黑</x-button.secondary>
                 <x-button.secondary wire:click="$set('showEditModal', false)">Cancel</x-button.secondary>
 
                 <x-button.primary type="submit">Save</x-button.primary>

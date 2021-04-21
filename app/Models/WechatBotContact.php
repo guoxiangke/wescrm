@@ -32,4 +32,8 @@ class WechatBotContact extends Model
     public function bot(){
         return $this->belongsTo(WechatBot::class, 'wechat_bot_id');
     }
+
+    public function messages(){
+        return $this->hasMany(WechatMessage::class, 'conversation', 'wechat_contact_id');
+    }
 }
