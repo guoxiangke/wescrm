@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\WechatBot;
 use App\Models\WechatContact;
+use App\Models\WechatContent;
 use App\Services\Wechat;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -47,5 +48,13 @@ class WechatAgreeQueue implements ShouldQueue
         $this->wechatBot->addOrUpdateContact($this->wxid, WechatContact::TYPES['friend']);
 
         $this->wechatBot->wechat->friendAgree($this->v1, $this->v2);
+
+        //自动回复欢迎语
+        $welcomeMsg = $this->wechatBot->getMeta('wechatWeclomeMsg', '你好');
+        $this->wechatBot->send((array)$this->wxid, WechatContent::make([
+            'name' => 'auto agree tmp',
+            'type' => WechatContent::TYPE_TEXT,
+            'content' => ['content'=>$welcomeMsg]
+        ]));
     }
 }

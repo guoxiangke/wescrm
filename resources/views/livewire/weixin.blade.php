@@ -114,6 +114,14 @@
                     label="公众号消息监听"
                     />
                 
+                <x-input.group for="wechatWeclomeMsg" label="同意成为好友后欢迎信息">
+                    <x-jet-input id="wechatWeclomeMsg" type="text" class="mt-1 block w-full"  autocomplete="wechatWeclomeMsg" 
+                        wire:model.defer="wechatWeclomeMsg"
+                        wire:blur.stop="$set('wechatWeclomeMsg', $event.target.value)"
+                        value="{{$wechatWeclomeMsg}}"
+                        />
+                </x-input.group>
+
                 <x-input.toggle 
                     wire:model="wechatWebhook" 
                     id="wechatWebhook" 

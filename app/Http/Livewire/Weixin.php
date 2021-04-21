@@ -41,11 +41,12 @@ class Weixin extends Component
 
     public $wechatWeiju;//boolean
     public $wechatWeijuWebhook;
-    
+
+    public $wechatWeclomeMsg;
     
     public function updated($name,$value)
     {
-        if(in_array($name,['wechatAutoReplyRoom','wechatWeiju','wechatWebhook','wechatWebhookUrl','wechatWebhookSecret','wechatTuingReply','wechatTulingKey','wechatTulingId','wechatAutoReply','wechatListenRoom','wechatListenRoomAll','wechatListenGh'])){
+        if(in_array($name,['wechatWeclomeMsg','wechatAutoReplyRoom','wechatWeiju','wechatWebhook','wechatWebhookUrl','wechatWebhookSecret','wechatTuingReply','wechatTulingKey','wechatTulingId','wechatAutoReply','wechatListenRoom','wechatListenRoomAll','wechatListenGh'])){
             $this->wechatBot->setMeta($name, $value);
         }
     }
@@ -149,6 +150,7 @@ class Weixin extends Component
             $this->wechatWebhookSecret = $wechatBot->getMeta('wechatWebhookSecret', 'xxx');
 
             
+            $this->wechatWeclomeMsg = $wechatBot->getMeta('wechatWeclomeMsg', '默认：你好');
             $this->wechatWeiju = $wechatBot->getMeta('wechatWeiju', false);
             $this->wechatWeijuWebhook = $wechatBot->getMeta('wechatWeijuWebhook', route('webhook.weiju'));
             
