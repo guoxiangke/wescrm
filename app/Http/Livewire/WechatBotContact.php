@@ -155,7 +155,8 @@ class WechatBotContact extends Component
             ->with('tags')
             ->where('wechat_bot_id', $this->wechatBotId)
             ->where('type', WechatContact::TYPES['friend'])
-            ->when($this->filters['search'], fn($query, $search) => $query->where('remark', 'like', '%' . $search . '%'));
+            ->when($this->filters['search'], fn($query, $search) => $query->where('remark', 'like', '%' . $search . '%'))
+            ->orderBy('created_at', 'desc');
 
         return $this->applySorting($query);
     }
