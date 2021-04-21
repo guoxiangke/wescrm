@@ -243,12 +243,18 @@ class WeijuController extends Controller
                             // smallheadimgurl
                             // encryptusername v3_xxx@stranger
                             // ticket v4_xxx@stranger
-                        $v1 = $msg['@attributes']['encryptusername'];
-                        $v2 = $msg['@attributes']['ticket'];
-                        $wechatBot->friendAgree($v1, $v2, $msg['@attributes']['fromusername']);
-                        $text = "{$msg['@attributes']['fromnickname']}({$msg['@attributes']['fromusername']})向您发送好友请求\r\n请求信息：{$msg['@attributes']['content']}";
-                        $wechatMessage['content'] = ['content' => $text];
-                        Log::debug(__METHOD__, ['好友请求', $wechatBot->wxid, $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
+                        $autoApprovel = $wechatBot->getMeta('wechatWeclome', false);
+                        if($autoApprovel){
+                            $v1 = $msg['@attributes']['encryptusername'];
+                            $v2 = $msg['@attributes']['ticket'];
+                            $wechatBot->friendAgree($v1, $v2, $msg['@attributes']['fromusername']);
+                            $text = "{$msg['@attributes']['fromnickname']}({$msg['@attributes']['fromusername']})向您发送好友请求\r\n请求信息：{$msg['@attributes']['content']}";
+                            $wechatMessage['content'] = ['content' => $text];
+                            Log::debug(__METHOD__, ['自动同意好友请求', $wechatBot->wxid, $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
+                        }else{
+                            Log::debug(__METHOD__, ['收到好友请求', $wechatBot->wxid, $msg['@attributes']['fromnickname'], $msg['@attributes']['content']]);
+                        }
+                        
                         break;
                     
                     case '42': //推荐名片

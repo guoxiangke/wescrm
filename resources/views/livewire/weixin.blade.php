@@ -114,6 +114,13 @@
                     label="公众号消息监听"
                     />
                 
+                    <x-input.toggle 
+                    wire:model="wechatWeclome" 
+                    id="wechatWeclome" 
+                    :checked="$wechatWeclome" 
+                    label="自动同意好友请求"
+                    />
+                @if($wechatWeclome)
                 <x-input.group for="wechatWeclomeMsg" label="同意成为好友后欢迎信息">
                     <textarea id="wechatWeclomeMsg" class="mt-1 block w-full"  autocomplete="wechatWeclomeMsg" 
                         wire:model.defer="wechatWeclomeMsg"
@@ -121,6 +128,7 @@
                         value="{{$wechatWeclomeMsg}}"
                         ></textarea>
                 </x-input.group>
+                @endif
 
                 <x-input.toggle 
                     wire:model="wechatWebhook" 
