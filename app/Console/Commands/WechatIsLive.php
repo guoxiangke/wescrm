@@ -41,14 +41,17 @@ class WechatIsLive extends Command
      */
     public function handle()
     {
-        WechatBot::active()->each(function(WechatBot $wechatBot){
-            $wechat = new Wechat($wechatBot->wxid);
-            $response = $wechat->who();
+        WechatBot::all()->each(function(WechatBot $wechatBot){
+            // $wechat = new Wechat($wechatBot->wxid);
+            $response = $wechatBot->wechat->who();
             if($response->ok() && $response['code'] == 10001){
                 $wechatBot->update(['login_at'=> null]);
                 Log::info(__METHOD__, ['已下线', $wechatBot->nickName]);
             }else{
-                Log::info(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
+                if(!$wechatBot->login_at){
+                    $wechatBot->update(['login_at'=> now()]);
+                }
+                Log::info(__METHOD__, [$wechatBot->nickName, $wechatBot->login_at ]);
             }
         });
 
