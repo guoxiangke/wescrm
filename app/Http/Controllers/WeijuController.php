@@ -400,7 +400,10 @@ class WeijuController extends Controller
                 if($wechatMessage['msgType'] == 34 && $response->json('data')){ // silk => mp3
                     $path = str_replace('http://wx-bbaos.oss-cn-shenzhen.aliyuncs.com', '', $response->json('data'));
                     $cdn = "https://silk.yongbuzhixi.com{$path}";
-                    get_headers($cdn); //触发 源站资源迁移 到 // file_get_contents($cdn);
+                    // failed to open stream: Connection timed out
+                    $next = rescue(fn() => get_headers($cdn), null, false);
+                    if(!$next) return;
+                    // get_headers($cdn); //触发 源站资源迁移 到 // file_get_contents($cdn);
                     //确保文件已上传到upyun再转换
                     $count = 0;
                     do {
