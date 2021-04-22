@@ -120,7 +120,7 @@ class WeijuController extends Controller
         }else{
             if($wechatMessage['from_contact_id'] !== null){
                 $contact = WechatContact::firstWhere('userName', $wechatMessage['from_contact_id']);
-                $wechatMessage['from_contact_id'] = $contact->id;
+                if($contact) $wechatMessage['from_contact_id'] = $contact->id;
             }
         }
 
