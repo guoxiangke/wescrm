@@ -196,10 +196,18 @@
             </x-slot>
 
             <x-slot name="footer">
-                <x-button.primary wire:click="friendDel({{$editing->id}})">微信拉黑</x-button.secondary>
-                <x-button.secondary wire:click="$set('showEditModal', false)">Cancel</x-button.secondary>
-
-                <x-button.primary type="submit">Save</x-button.primary>
+                <div class="flex justify-between">
+                    <div>
+                        <x-button.secondary wire:click="friendDel({{$editing->id}})">拉黑</x-button.secondary>
+                        <span class="text-sm text-gray-600">⚠️即删除微信好友⚠️</span>
+                        
+                    </div>
+                    
+                    <div>
+                        <x-button.secondary wire:click="$set('showEditModal', false)">Cancel</x-button.secondary>
+                        <x-button.primary type="submit">Save</x-button.primary>
+                    </div>
+                </div>
             </x-slot>
         </x-modal.dialog>
     </form>
