@@ -10,8 +10,10 @@ use App\Http\Livewire\DataTable\WithSorting;
 use App\Http\Livewire\DataTable\WithCachedRows;
 use App\Http\Livewire\DataTable\WithBulkActions;
 use App\Http\Livewire\DataTable\WithPerPagePagination;
-use App\Jobs\WechatSendByTagsQueue;
+use App\Jobs\WechatSendQueue;
+use App\Models\WechatBotContact;
 use App\Rules\WechatContentRule;
+use Illuminate\Support\Facades\Log;
 use Spatie\Tags\Tag;
 
 // 批量发送任务和记录（1次性群发）
@@ -87,7 +89,7 @@ class WechatContent extends Component
     public function testSend()
     {
         $wchatContent = Model::findOrFail($this->contentId);//TODO validate 必需是自己的内容
-        $this->wechatBot->send(["filehelper"], $wchatContent);
+        $this->wechatBot->send("filehelper", $wchatContent);
     }
 
     //TODO two forms validate
@@ -111,12 +113,13 @@ class WechatContent extends Component
         }
         // add to Queue
         $wechatContent = Model::findOrFail($this->contentId);//TODO validate 必需是自己的内容
-        WechatSendByTagsQueue::dispatch(
-            $this->wechatBot,
-            $wechatContent,
-            $this->selectedTags,
-            $this->tagWith
-        )->delay(now()->addMinutes($delayByMinutes));
+
+        WechatBotContact::with('contact')
+            ->withAnyTags($this->selectedTags, $this->tagWith)
+            ->get()
+            ->pluck('contact.userName')
+            ->each(fn($to) => WechatSendQueue::dispatch($this->wechatBot, $wechatContent, $to)->delay(now()->addMinutes($delayByMinutes)));
+       
     }
 
     public function edit(Model $model)

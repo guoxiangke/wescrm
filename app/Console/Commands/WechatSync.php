@@ -51,7 +51,7 @@ class WechatSync extends Command
                 // Log::debug(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
                 $wechatBot->syncContacts();
                 $wechatBot->syncTags();
-                $wechatBot->send(['filehelper'], WechatContent::make([
+                $wechatBot->send('filehelper', WechatContent::make([
                     'name' => 'tmp',
                     'type' => WechatContent::TYPE_TEXT,
                     'content' => ['content'=> "同步联系人和标签完成"]

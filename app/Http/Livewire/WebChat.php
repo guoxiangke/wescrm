@@ -123,7 +123,7 @@ class WebChat extends Component
                     $wechatContent->content = [
                         'content'=> $this->file->temporaryUrl()
                     ];
-                    $this->wechatBot->send((array)$wxid, $wechatContent);
+                    $this->wechatBot->send($wxid, $wechatContent);
                     return;
                     break;
                 case 'mp4':
@@ -146,7 +146,7 @@ class WebChat extends Component
                     ];
                     break;
             }
-            $this->wechatBot->send((array)$wxid, $wechatContent);
+            $this->wechatBot->send($wxid, $wechatContent);
             $this->reset('file');
         }// end发送文件
 
@@ -155,7 +155,7 @@ class WebChat extends Component
         $content = ['content'=>$this->content];
         // $content = compact('data');
         $this->editing->content = $content;
-        $this->wechatBot->send((array)$wxid, $this->editing);
+        $this->wechatBot->send($wxid, $this->editing);
 
         $this->emit('refreshSelf');
         

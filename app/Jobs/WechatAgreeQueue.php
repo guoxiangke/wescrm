@@ -51,7 +51,7 @@ class WechatAgreeQueue implements ShouldQueue
 
         //自动回复欢迎语
         $welcomeMsg = $this->wechatBot->getMeta('wechatWeclomeMsg', '你好');
-        $this->wechatBot->send((array)$this->wxid, WechatContent::make([
+        $this->wechatBot->send($this->wxid, WechatContent::make([
             'name' => 'auto agree tmp',
             'type' => WechatContent::TYPE_TEXT,
             'content' => ['content'=>$welcomeMsg]

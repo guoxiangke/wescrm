@@ -446,7 +446,7 @@ class WeijuController extends Controller
         //  1.响应内容为文本 2.开启了autoreply  // 只响应第一个匹配的
         if($wechatBot->getMeta('wechatAutoReply', false) && $wechatMessage['msgType'] == WechatMessage::MSG_TYPES['text']) {
             $keywords = $wechatBot->autoReplies()->pluck('keyword','wechat_content_id');
-            $to = $wechatMessage['sendUser']; // TODO 传 WechatContact Obj
+            $to = $wechatMessage['sendUser'];
             if($isFromRoom){
                 if(!$wechatBot->getMeta('wechatAutoReplyRoom', false)){
                     return; //是否开启群关键词回复
@@ -458,7 +458,7 @@ class WeijuController extends Controller
                 if(Str::is($keyword, $rawContent)){
                     // TODO preg;
                     // @see https://laravel.com/docs/8.x/helpers#method-str-is
-                    return $wechatBot->send((array)$to, WechatContent::find($id));//send(Array $contacts, WechatContent $wchatContent)
+                    return $wechatBot->send($to, WechatContent::find($id));//send(Array $contacts, WechatContent $wchatContent)
                 }
             }
 

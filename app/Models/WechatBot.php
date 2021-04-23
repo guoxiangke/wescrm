@@ -102,7 +102,17 @@ class WechatBot extends Model
     // $url = ['type'=>'url','title'=>'linkTitle', 'url'=>'https://weibo.com', 'description'=>'this is a link', 'thumbUrl'=>"https://www.bing.com/th?id=OHR.PeritoMorenoArgentina_ZH-CN8205335022_1920x1080.jpg"];
     // $card = ['type'=>'card','nameCardId'=>'wxid_xxx', 'nickName'=>'nothing']];
     // $video = ['type'=>'video','path'=>"https://your.com/test.mp4", 'thumbPath'=>"https://your.com/test.jpg"];
-    public function send($tos, WechatContent $wchatContent)
+    // 批量发送
+    public function sendTo($tos, WechatContent $wchatContent){
+        foreach ($tos as $to) {
+            $this->send($to, $wchatContent);
+        }
+    }
+
+    /**
+     * 带返回结果，单个发送
+     */
+    public function send(string $wxid, WechatContent $wchatContent)
     {
         $typeId = $wchatContent->type;
         $content = $wchatContent->content;
@@ -122,8 +132,7 @@ class WechatBot extends Model
         $typeName = WechatContent::TYPES[$typeId];
         $sendType = Str::camel("send_{$typeName}");//sendImage  sendText sendVideo sendCard sendUrl .strtoupper
         
-        // TODO tos Array or WechatContact obj
-        foreach ($tos as $wxid) {
+        // foreach ($tos as $wxid) {
             if($typeName == 'template'){
                 // 可用变量替换
                 $template = $wchatContent->content['content'];
@@ -154,6 +163,8 @@ class WechatBot extends Model
                 $content = ['content'=>$replaced];//$wchatContent->content;
                 $sendType = 'sendText';
             }
+            // "card",//名片 5
+            // "url",//链接 6
             if(in_array($typeId,[5,6])){
                 $cnType = WechatContent::TYPES_CN[$typeId];
                 $content['content'] = "已发送{$cnType}消息,请到手机上查看";
@@ -178,9 +189,10 @@ class WechatBot extends Model
                 ];
                 return WechatMessage::create($data);
             }else{
+                return false;
                 Log::error(__METHOD__, ['主动发送失败', $Wxid, $wxid, $response->json(), $sendType, $contentWithTo]);
             }
-        }
+        // }
     }
 
     // $wechatBot = WechatBot::find(1);

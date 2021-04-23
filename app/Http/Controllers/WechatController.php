@@ -24,8 +24,7 @@ class WechatController extends Controller
         // { "type": "image", "to": "bluesky_still", "data": { "content": "https://www.upyun.com/static/logos/dangdang.png" } }
         // { "type": "video", "to": "bluesky_still", "data": { "path": "https://abc.yilindeli.com/teach/LevelTestMaterial/0zhumuTestFiles/test.mp4", "thumbPath": "https://www.upyun.com/static/logos/dangdang.png" } }
         // TODO url card !
-        return $wechatBot->send(
-            (array) $request['to'],
+        return $wechatBot->send($request['to'],
             WechatContent::make([
                 'name' => 'tmpSendStructure',
                 'type' => array_search($request['type'], WechatContent::TYPES),
