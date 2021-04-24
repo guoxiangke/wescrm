@@ -115,7 +115,9 @@ class Weixin extends Component
                 $this->expiresAt = $expiresAt;
             }
             // 如果weiju没有过期，且 还有剩余 可登录的bot配额
-            if(!$wechatBot->login_at && $expiresAt > now() && $maxClientsCounts > WechatBot::whereNotNull('login_at')->count()){
+            if( ($wechatBot && !$wechatBot->login_at) //如果不是第一次绑定，且没有login_at
+                && $expiresAt > now() 
+                && $maxClientsCounts > WechatBot::whereNotNull('login_at')->count()){
                 $this->showRemind = true;
                 // 若传入 wxid 将会弹窗登录,作为第二次登录参数，稳定不掉线
                 // 返回二维码，默认上一行一定能成功
