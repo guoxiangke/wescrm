@@ -104,7 +104,7 @@ class Weixin extends Component
             // 2. 获得token后，返回 到期时间，可登录微信数量 给管理后台
             // 3.
         if($response->ok() && $response['code'] == 1) {
-            {// cache token
+            // cache token
                 // 使用option可靠存储，因为Cache可能失效！
                 if(!option_exists('weiju.token')){
                     option(['weiju.token' => $response['data']['apikey']]);
@@ -113,10 +113,13 @@ class Weixin extends Component
                 $expiresAt = $response['data']['expiretime'];
 
                 $this->expiresAt = $expiresAt;
+            
+            //如果不是第一次绑定(已有$wechatBot)，且login_at
+            if($wechatBot && $wechatBot->login_at){
+                // do noting, already login.
             }
             // 如果weiju没有过期，且 还有剩余 可登录的bot配额
-            if( ($wechatBot && !$wechatBot->login_at) //如果不是第一次绑定，且没有login_at
-                && $expiresAt > now() 
+            elseif($expiresAt > now()
                 && $maxClientsCounts > WechatBot::whereNotNull('login_at')->count()){
                 $this->showRemind = true;
                 // 若传入 wxid 将会弹窗登录,作为第二次登录参数，稳定不掉线
