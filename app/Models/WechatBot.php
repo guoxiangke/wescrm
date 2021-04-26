@@ -235,9 +235,25 @@ class WechatBot extends Model
     }
 
     // 同意添加好友请求
-    public function friendAgree($v1, $v2, $wxid, $delaySeconds=5)
+    public function friendAgree($v1, $v2, $wxid, $delaySeconds=3)
     {
-        WechatAgreeQueue::dispatch($v1, $v2, $this, $wxid)->delay(now()->addSeconds($delaySeconds));
+        sleep($delaySeconds);
+        // 在同意之前，保存一下好友通讯录
+        $this->addOrUpdateContact($wxid, WechatContact::TYPES['friend']);
+
+        $response = $this->wechat->friendAgree($v1, $v2);
+        if($response->ok() && $response['code'] = 1000){
+            //自动回复欢迎语
+            $welcomeMsg = $this->getMeta('wechatWeclomeMsg', '你好');
+            $this->send($wxid, WechatContent::make([
+                'name' => 'auto agree tmp',
+                'type' => WechatContent::TYPE_TEXT,
+                'content' => ['content'=>$welcomeMsg]
+            ]));
+        }else{ 
+            Log::error(__METHOD__, $response->json());
+        }
+        // WechatAgreeQueue::dispatch($v1, $v2, $this, $wxid)->delay(now()->addSeconds($delaySeconds));
     }
 
     public function friendDel($wxid){ return $this->wechat->friendDel($wxid); }
