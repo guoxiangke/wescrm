@@ -286,7 +286,7 @@ class WechatBot extends Model
 
             $attach[$contact->id] =[
                 'remark' => $contact->remark?:$contact->nickName, 
-                'seat_user_id' => $this->team_id, 
+                'seat_user_id' => $this->team->user_id,
                 'type' => $type
             ];
             $this->contacts()->syncWithoutDetaching($attach);

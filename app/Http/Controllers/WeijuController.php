@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WechatBot;
+use App\Models\WechatBotContact;
 use App\Models\WechatContact;
 use App\Models\WechatContent;
 use App\Models\WechatMessage;
@@ -346,7 +347,8 @@ class WeijuController extends Controller
             //   }
         
         $wechatMessage['wechat_bot_id'] = $wechatBot->id;
-        $conversation = WechatContact::firstWhere('userName', $wechatMessage['conversation']);
+        $wechatContact = WechatContact::firstWhere('userName', $wechatMessage['conversation']);
+        
 
         // // 企业微信群
         //     // fromUser=sendUser=9223372041442168057@im.chatroom
@@ -365,8 +367,16 @@ class WeijuController extends Controller
             // 'friend'=>1, // 1
             // 'group'=>2, // 2
             // 'stranger'=>3, // 3
-        if($conversation){
-            $wechatMessage['conversation'] = $conversation->id;
+        $wxid = $wechatMessage['conversation'];
+        if($wechatContact){
+            // 当删除的好友，再次发信息时，没有名字 // 再次保存联系人
+            $wechatBotContact = WechatBotContact::where('wechat_bot_id', $wechatBot->id)
+                ->where('wechat_contact_id', $wechatContact->id)->first();
+            if(!$wechatBotContact){
+                $wechatContact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['friend']);//2
+            }
+            $wechatMessage['conversation'] = $wechatContact->id;
+            // fixed
         }else{
             // 保存群
 
@@ -375,9 +385,8 @@ class WeijuController extends Controller
             //     $wxid = $wechatMessage['sendUser'];
             // }
 
-            $wxid = $wechatMessage['conversation'];
-            $conversation = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['group']);//2
-            $wechatMessage['conversation'] = $conversation->id;
+            $wechatContact = $wechatBot->addOrUpdateContact($wxid, WechatContact::TYPES['group']);//2
+            $wechatMessage['conversation'] = $wechatContact->id;
         }
         // 为什么1条信息，数据库中有2个记录，同样的msgId？
             // server重发 发送2次post
