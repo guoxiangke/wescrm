@@ -242,7 +242,8 @@ class WechatBot extends Model
         $this->addOrUpdateContact($wxid, WechatContact::TYPES['friend']);
 
         $response = $this->wechat->friendAgree($v1, $v2);
-        if($response->ok() && $response['code'] = 1000){
+        $data = $response->json();
+        if($response->ok() && $data['code'] = 1000){
             //自动回复欢迎语
             $welcomeMsg = $this->getMeta('wechatWeclomeMsg', '你好');
             $this->send($wxid, WechatContent::make([
