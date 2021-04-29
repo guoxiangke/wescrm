@@ -51,7 +51,7 @@ class WechatInitQueue implements ShouldQueue
      */
     public function handle()
     {
-        $wechat = new Wechat("no_Wxid_yet", $this->wId);
+        $wechat = new Wechat("", $this->wId);
         $loop = true;
         $loopCount = 0;
         while($loop && $loopCount<15){
