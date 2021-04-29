@@ -337,6 +337,8 @@ class WebChat extends Component
             //初始化
             $messages = WechatMessage::where('wechat_bot_id', $this->wechatBot->id)
                 ->where('created_at','>=', now()->subDays(3))
+                ->orderBy('created_at','desc')
+                ->limit(2000)
                 ->get();
             $this->wechatMessages = $messages->groupBy('conversation')->map(fn($items)=>$items->keyBy('id'))->toArray();
             $this->maxMessageId = optional($messages->last())->id??-1;

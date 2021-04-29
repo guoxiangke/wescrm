@@ -189,8 +189,8 @@ class WechatBot extends Model
                 ];
                 return WechatMessage::create($data);
             }else{
-                return false;
                 Log::error(__METHOD__, ['主动发送失败', $Wxid, $wxid, $response->json(), $sendType, $contentWithTo]);
+                return false;
             }
         // }
     }
