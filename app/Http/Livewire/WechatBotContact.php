@@ -91,6 +91,7 @@ class WechatBotContact extends Component
     {
         $wxid = $wechatBotContact->contact->userName;
         $response = $this->wechatBot->friendDel($wxid);
+        Log::info(__METHOD__, [$wxid]);
         if($response->ok() && $response['code'] == 1000){
             // 删除所有的消息
             // ->messages->each(fn($item)=>$item->forceDelete())
@@ -101,9 +102,11 @@ class WechatBotContact extends Component
                 ->where('conversation', $wechatBotContact->wechat_contact_id)
                 ->delete();
             $wechatBotContact->delete();
-            $this->showEditModal = false;
             $this->dispatchBrowserEvent('notify', 'Deleted!');
+        }else{
+            Log::error(__METHOD__, $response->json());
         }
+        $this->showEditModal = false;
     }
 
     public function detachTag(Model $wechatBotContact, string $tagName)
