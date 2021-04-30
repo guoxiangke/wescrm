@@ -192,11 +192,11 @@ class Weixin extends Component
                 $this->who = $responseWho['data'];
                 // 付费管理1 bot过期 
                 // TODO: schedule check! 如果用户一直不进这个页面，那么一直保持登录吗？！
-                if($wechatBot->expired()){
-                    $this->msg = "对不起，订阅到期，您暂时无法管理Bot，请与管理员联系付费使用！";
-                    $wechat->send("sendText", ['ToWxid'=>'filehelper', 'content'=>$this->msg]);
-                    $wechat->logout();
-                }
+                // if($wechatBot->expired()){
+                //     $this->msg = "对不起，订阅到期，您暂时无法管理Bot，请与管理员联系付费使用！";
+                //     $wechat->send("sendText", ['ToWxid'=>'filehelper', 'content'=>$this->msg]);
+                //     $wechat->logout();
+                // }
                 return ;
             }
 
