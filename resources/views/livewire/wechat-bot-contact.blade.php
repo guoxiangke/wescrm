@@ -11,6 +11,15 @@
             <button type="submit" class="absolute top-0 mt-3 left-0 ml-4">
                 <x-icon.search />
             </button>
+
+            <x-input.group borderless paddingless for="type" label="显示类型">
+                <x-input.select wire:model="type" id="type">
+                    <option value="friend">好友</option>
+                    <option value="group">群</option>
+                    <option value="public">公众号</option>
+                </x-input.select>
+            </x-input.group>
+            
         </div>
 
         <div class="space-x-2 flex items-center">
@@ -198,9 +207,17 @@
             <x-slot name="footer">
                 <div class="flex justify-between">
                     <div>
+                        @if($type=='friend')
                         <x-button.secondary wire:click="friendDel({{$editing->id}})">拉黑</x-button.secondary>
                         <span class="text-sm text-gray-600">⚠️即删除微信好友⚠️</span>
-                        
+                        @endif
+
+                        @if($type=='group')
+                        <label for="log_me" class="flex items-center">
+                            <x-jet-checkbox wire:model.defer="wechatListenRoom" :value="$wechatListenRoom"/>
+                            <span class="ml-2 text-sm text-gray-600">监听本群消息</span>
+                        </label>
+                        @endif
                     </div>
                     
                     <div>

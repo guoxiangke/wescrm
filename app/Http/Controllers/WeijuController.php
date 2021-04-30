@@ -105,9 +105,15 @@ class WeijuController extends Controller
                 Log::debug(__METHOD__, ['没有开启接收群消息']);
                 return;
             }else{  // 只接收少数几个群的群消息
-                if(!($wechatBot->getMeta('wechatListenRoomAll') 
-                    || in_array($wechatMessage['conversation'], (array) $wechatBot->getMeta('wechatListenRooms')))) {
-                    Log::debug(__METHOD__, ['没有开启接收指定/全部群消息']);
+                // $this->wechatListenRoomKey = 'wechatListenRooms-'.$model->id;
+                // $this->wechatListenRoom = $this->wechatBot->getMeta($this->wechatListenRoomKey, false);
+                $wechatListenRooms = $wechatBot->getMeta('wechatListenRooms',[]);
+                $next = $wechatListenRooms[$wechatMessage['conversation']]??false;
+                if(!(
+                    $wechatBot->getMeta('wechatListenRoomAll', false) 
+                    || $next)
+                ){
+                    Log::debug(__METHOD__, ['没有开启接收本群消息']);
                     return;
                 }
             }
@@ -193,7 +199,7 @@ class WeijuController extends Controller
                         break;
                     case '19': //群聊的聊天记录
                         $items = xStringToArray($msg['recorditem']);
-                        $content['title'] = $items['title'];
+                        $content['title'] = $items['title']??'';
                         $content['desc'] = $items['desc'];
                         $content['url'] = $msg['url'];
                         foreach ($items['datalist']['dataitem'] as  $item) {

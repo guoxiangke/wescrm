@@ -56,7 +56,8 @@ class WechatBotContact extends Component
     ];
     public Model $editing;
 
-    protected $queryString = ['sorts'];
+    public $type = 'friend';
+    protected $queryString = ['sorts','type'];
 
     protected $listeners = ['refreshWechatContacts' => '$refresh'];
 
@@ -85,6 +86,7 @@ class WechatBotContact extends Component
         // $tagB = Tag::findOrCreate('tagB', $this->tagWith);
         // $this->tags = Tag::getWithType($this->tagWith)->pluck('name','id')->toArray();
         // dd($this->tags);
+        $this->wechatListenRooms = $this->wechatBot->getMeta('wechatListenRooms', []);
     }
 
     public function friendDel(Model $wechatBotContact)
@@ -129,23 +131,20 @@ class WechatBotContact extends Component
         $this->resetPage();
     }
 
-    public function exportSelected()
-    {
-        return response()->streamDownload(function () {
-            echo $this->selectedRowsQuery->toCsv();
-        }, $this->editing->getTable() . '.csv');
-    }
-
     public function makeBlankModel()
     {
         return Model::make(['date' => now(), 'status' => 'success']);
     }
 
+    public $wechatListenRoom = false;
+    public $wechatListenRoomKey;
+    public $wechatListenRooms;
     public function edit(Model $model)
     {
         $this->useCachedRows();
         if ($this->editing->isNot($model)) $this->editing = $model;
-
+        $this->wechatListenRoomKey = $model->contact->userName; // "26401104290@chatroom"
+        $this->wechatListenRoom = $this->wechatListenRooms[$this->wechatListenRoomKey]??false;
         $this->showEditModal = true;
     }
 
@@ -167,6 +166,14 @@ class WechatBotContact extends Component
         $this->dispatchBrowserEvent('notify', 'Saved!');
     }
 
+    public function updated($name,$value)
+    {
+        if($name == 'wechatListenRoom'){
+            $this->wechatListenRooms[$this->wechatListenRoomKey] = $value;
+            $this->wechatBot->setMeta('wechatListenRooms', $this->wechatListenRooms);
+        }
+    }
+
     public function resetFilters()
     {
         $this->reset('filters');
@@ -174,11 +181,12 @@ class WechatBotContact extends Component
 
     public function getRowsQueryProperty()
     {
+        $type = WechatContact::TYPES[$this->type];
         $query = Model::query()
             ->with('contact')
             ->with('tags')
             ->where('wechat_bot_id', $this->wechatBotId)
-            ->where('type', WechatContact::TYPES['friend'])
+            ->where('type', $type)
             ->when($this->filters['search'], fn($query, $search) => $query->where('remark', 'like', '%' . $search . '%'))
             ->orderBy('created_at', 'desc');
 
