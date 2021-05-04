@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class WechatAgreeQueue implements ShouldQueue
 {
@@ -47,14 +48,18 @@ class WechatAgreeQueue implements ShouldQueue
         // 在同意之前，保存一下好友通讯录
         $this->wechatBot->addOrUpdateContact($this->wxid, WechatContact::TYPES['friend']);
 
-        $this->wechatBot->wechat->friendAgree($this->v1, $this->v2);
-
-        //自动回复欢迎语
-        $welcomeMsg = $this->wechatBot->getMeta('wechatWeclomeMsg', '你好');
-        $this->wechatBot->send($this->wxid, WechatContent::make([
-            'name' => 'auto agree tmp',
-            'type' => WechatContent::TYPE_TEXT,
-            'content' => ['content'=>$welcomeMsg]
-        ]));
+        $response = $this->wechatBot->wechat->friendAgree($this->v1, $this->v2);
+        $data = $response->json();
+        if($response->ok() && $data['code'] = 1000){
+            //自动回复欢迎语
+            $welcomeMsg = $this->wechatBot->getMeta('wechatWeclomeMsg', '你好');
+            $this->wechatBot->send($this->wxid, WechatContent::make([
+                'name' => 'auto agree tmp',
+                'type' => WechatContent::TYPE_TEXT,
+                'content' => ['content'=>$welcomeMsg]
+            ]));
+        }else{ 
+            Log::error(__METHOD__, $response->json());
+        }
     }
 }
