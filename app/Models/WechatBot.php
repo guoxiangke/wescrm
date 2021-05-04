@@ -237,7 +237,7 @@ class WechatBot extends Model
     // 同意添加好友请求
     public function friendAgree($v1, $v2, $wxid)
     {
-        $delaySeconds = rand(15, 60);
+        $delaySeconds = rand(60, 120);
         WechatAgreeQueue::dispatch($v1, $v2, $this, $wxid)->delay(now()->addSeconds($delaySeconds));
     }
 
