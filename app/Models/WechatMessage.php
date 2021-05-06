@@ -47,7 +47,7 @@ class WechatMessage extends Model
     const ATTACHMENY_MSG_TYPES = [
         3, // Img
         6, // File文件
-        34, // Voice
+        // 34, // Voice
         43, // Video
         496, // 49+6
     ];
