@@ -413,30 +413,38 @@ class WeijuController extends Controller
                 Log::debug(__METHOD__,['消息下载成功', $wechatBot->wxid, $response->json()]);
                 // {"code":1000,"msg":"该任务已在进行，请稍后再试","data":[]}
                 if($wechatMessage['msgType'] == 34 && $response->json('data')){ // silk => mp3
-                    $path = str_replace('http://wx-bbaos.oss-cn-shenzhen.aliyuncs.com', '', $response->json('data'));
-                    $cdn = "https://silk.yongbuzhixi.com{$path}";
+                    $oriUrl = $response->json('data');
+                    $path = str_replace('http://wx-bbaos.oss-cn-shenzhen.aliyuncs.com', '', $oriUrl);
+                    // $cdn = "https://silk.yongbuzhixi.com{$path}";
                     // failed to open stream: Connection timed out
-                    $next = rescue(fn() => get_headers($cdn), null, false);
-                    if(!$next) return;
+                    $upyun->save($path,file_get_contents($oriUrl));
+
+                    // $next = rescue(fn() => get_headers($cdn), null, false);
+                    // Log::debug(__METHOD__,['get_headers', $next]);
+                    // if(!$next) return;
                     // get_headers($cdn); //触发 源站资源迁移 到 // file_get_contents($cdn);
                     //确保文件已上传到upyun再转换
                     $count = 0;
+                    $result = false;
                     do {
+                        sleep(1);
                         $result = $upyun->has($path);
                         $count++;
-                    } while ($result && $result==false && $count <= 10);
-                    
+                    } while (!$result && $count <= 10);
+                    if(!$result) return;
+
                     $saveAs = "/{$wechatBot->wxid}{$path}.mp3";
                     $tasks = $upyun->silk($path, $saveAs);
                     $taskId = $tasks[0];
                     
                     //确保文件转换已完成
                     $count = 0;
+                    $results[$taskId] = -1;
                     do {
                         sleep(1);
-                        $result = $upyun->status($tasks);
+                        $results = $upyun->status($tasks);
                         $count++;
-                    } while ($result && $result[$taskId] != 100 && $count <= 10);
+                    } while ($results[$taskId] != 100 && $count <= 10);
                     $upyun->delete($path);
 
                     $newCdn = "https://silk.yongbuzhixi.com{$saveAs}";

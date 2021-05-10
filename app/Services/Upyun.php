@@ -50,6 +50,11 @@ class Upyun {
         ]);
         return rescue(fn() => $this->upyun->process($tasks, Upservice::$PROCESS_TYPE_MEDIA, $path), null, false);
     }
+    
+    public function save($path,$file)
+    {
+        return rescue(fn() => $this->upyun->write($path, $file), null, false);
+    }
 
     public function status($tasks)
     {
