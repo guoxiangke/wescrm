@@ -90,7 +90,7 @@
             $contactId = $conversation['conversation'];
             // $conversation = end($conversation); //最后一个对方发的消息
             $time = $conversation['updated_at']??now();
-            $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
+            $updatedAt = Illuminate\Support\Carbon::parse($time)->toDateTimeString();//->diffForHumans();
             $name = $remarks[$contactId]??'G'.$contactsArray[$contactId]['id'];
             // $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
             $fallbackAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
@@ -254,11 +254,7 @@
                       $now = now();
                       $time = $message['updated_at']??$now;
                       $updatedAt = Illuminate\Support\Carbon::parse($time);
-                      if($updatedAt->copy()->diffInHours($now)>=10){
-                        $time = $updatedAt->setTimezone('Asia/Shanghai')->toDateTimeString();
-                      }else{
-                        $time = $updatedAt->diffForHumans();
-                      }
+                      $time = $updatedAt->toDateTimeString();
                     @endphp
                     <div data-testid="message-inner" class="str-chat__message-inner">
                       <div class="str-chat__message-text">
