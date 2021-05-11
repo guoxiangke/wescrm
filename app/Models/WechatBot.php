@@ -173,7 +173,7 @@ class WechatBot extends Model
             
             $response = $this->wechat->send($sendType, $contentWithTo);
             if($response->ok() && $response['code'] == 1000){ // 1000成功，10001失败
-                Log::info(__METHOD__, ['主动发送成功', $Wxid, $wxid]);
+                Log::info(__METHOD__, ['主动发送成功', $this->nickName, $Wxid, $wxid]);
                 // 主动发送消息，需要主动记录 客服座席 user_id to message
                 // $wechatBot = WechatBot::firstWhere('team_id', $teamId);
                 $contact = WechatContact::where('userName', $wxid)->firstOrFail(); //初始化还未完成，就发送消息了！
