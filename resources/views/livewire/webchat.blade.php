@@ -90,7 +90,7 @@
             $contactId = $conversation['conversation'];
             // $conversation = end($conversation); //最后一个对方发的消息
             $time = $conversation['updated_at']??now();
-            $updatedAt = Illuminate\Support\Carbon::parse($time)->toDateTimeString();//->diffForHumans();
+            $updatedAt = Illuminate\Support\Carbon::parse($time)->setTimezone('Asia/Shanghai')->toDateTimeString();
             $name = $remarks[$contactId]??'G'.$contactsArray[$contactId]['id'];
             // $name = $contactsArray[$contactId]['nickName']?:'G'.$contactsArray[$contactId]['id'];
             $fallbackAvatar = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
@@ -183,7 +183,7 @@
                 @foreach ($conversations[$currentConversationId] as $message)
                   @php
                       $time = $message['updated_at']??now();
-                      $updatedAt = Illuminate\Support\Carbon::parse($time)->diffForHumans();
+                      $updatedAt = Illuminate\Support\Carbon::parse($time)->setTimezone('Asia/Shanghai')->toDateTimeString();
                   @endphp
                   @if ($loop->first)
                     <li class="">
@@ -254,7 +254,7 @@
                       $now = now();
                       $time = $message['updated_at']??$now;
                       $updatedAt = Illuminate\Support\Carbon::parse($time);
-                      $time = $updatedAt->toDateTimeString();
+                      $time = $updatedAt->setTimezone('Asia/Shanghai')->toDateTimeString();
                     @endphp
                     <div data-testid="message-inner" class="str-chat__message-inner">
                       <div class="str-chat__message-text">
