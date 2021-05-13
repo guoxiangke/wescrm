@@ -206,7 +206,7 @@ class WeijuController extends Controller
                             $dataitem['name'] = $item['sourcename'];
                             $dataitem['time'] = $item['sourcetime'];
                             $dataitem['wxid'] = $item['dataitemsource']['realchatname']??'';
-                            $dataitem['desc'] = $item['datadesc'];
+                            $dataitem['desc'] = $item['datadesc']??'';
                             $content['dataitems'][] = $dataitem;
                         }
                         break;
