@@ -479,7 +479,7 @@ class WeijuController extends Controller
             
             foreach ($keywords as $id => $keyword) {
                 if(Str::is($keyword, $rawContent)){
-                    Log::info(__METHOD__,[__LINE__, '关键词回复', $wechatBot->nickName, $keyword, $to]);
+                    Log::info(__METHOD__,[__LINE__, '关键词回复', $wechatBot->nickName, $rawContent, $to]);
                     // TODO preg;
                     // @see https://laravel.com/docs/8.x/helpers#method-str-is
                     return $wechatBot->send($to, WechatContent::find($id));//send(Array $contacts, WechatContent $wchatContent)
