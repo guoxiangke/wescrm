@@ -52,7 +52,7 @@ class WechatIsLive extends Command
                     $wechatBot->update(['login_at'=> now()]);
                 }
                 $hours = $wechatBot->login_at->diffInHours(now());
-                $wechatBot->send('filehelper', WechatContent::make([
+                $wechatBot->sendTo(['filehelper', '17381631579@chatroom'], WechatContent::make([
                     'name' => 'islive',
                     'type' => WechatContent::TYPE_TEXT,
                     'content' => ['content'=> "已上线{$hours}小时"]

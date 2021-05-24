@@ -176,7 +176,8 @@ class WechatBot extends Model
                 Log::info(__METHOD__, ['主动发送成功', $this->nickName, $wxid]);
                 // 主动发送消息，需要主动记录 客服座席 user_id to message
                 // $wechatBot = WechatBot::firstWhere('team_id', $teamId);
-                $contact = WechatContact::where('userName', $wxid)->firstOrFail(); //初始化还未完成，就发送消息了！
+                $contact = WechatContact::where('userName', $wxid)->first(); //初始化还未完成，就发送消息了！
+                if(!$contact) return; // Error! 发送给一个未知的用户/群
                 $data = [
                     // 'msgId'=>NULL,
                     'seat_user_id' => $seatUserId, // 座席 用户ID
