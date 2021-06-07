@@ -80,13 +80,15 @@ class Weixin extends Component
     // private $wechat; // protected and private properties DO NOT persist between Livewire updates. In general, you should avoid using them for storing state.
     public $wxid='';  // 和前端部分相关的$Wxid全部改成小写$wxid @see WechatBot::getWxidAttribute();
 
+    public $auto = '';
+    protected $queryString = ['auto' => ['except' => '']];
     public function mount(Weiju $weiju)
     {
         $response = $weiju->getStatus();
         if(is_null($response) || $response->failed()) return $this->msg = "系统错误， API接口登录失败，请联系管理员！";
         // "{"code":0,"msg":"登录的微信号已经超过数量限制！"}"
         // "{"code":1,"msg":"登录成功","num":2,"expiretime":"2021-03-02 11:21:16","data":{"apikey":"exxx
-        
+        // info($response);
         // 显示 Team 关系
         // 用户必需属于一个team，且以此身份浏览 currentTeam
         /** @var $user \App\Models\User **/
@@ -125,7 +127,10 @@ class Weixin extends Component
                 // 若传入 wxid 将会弹窗登录,作为第二次登录参数，稳定不掉线
                 // 返回二维码，默认上一行一定能成功
                 // About rescue() @see https://pbs.twimg.com/media/Ev-RyPtWYAEu0M1?format=jpg&name=medium
-                $loginResponse = $weiju->login($this->wxid);
+                $auto = $this->auto?$this->wxid:''; 
+                //还有对方说的掉线问题，请重新获取二维码不传参数登录，封号的这个最好要等时间过下再登录，最近活动可能风控比较严
+                info($auto);
+                $loginResponse = $weiju->login($auto);
                 if(is_null($loginResponse) || $response->failed()){
                     return $this->msg = " 请求二维码时，API返回错误，请稍后再试！";
                 }
