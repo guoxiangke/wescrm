@@ -312,12 +312,22 @@ class WechatBot extends Model
         $response = $wechat->getAllContacts();
         if($response->ok() && $response['code'] == 1000){
             $attachs = [];
+            $tags = [];
             $teamOwnerId = $this->team->owner->id;
             foreach ($response['data'] as $type => $values) {
                 foreach ($values as $data) {
                     ($contact = WechatContact::firstWhere('userName', $data['userName']))
                         ? $contact->update($data) // 更新资料
                         : $contact = WechatContact::create($data);
+
+                    // 2.记录 每个联系人的标签
+                    if($type == 'friend' && isset($data['labelIdList'])){
+
+                        $wxLabelIds = explode(',', $data['labelIdList']);
+                        foreach ($wxLabelIds as $wxLabelId) {
+                            $tags[$contact->id][] = $wxLabels[$wxLabelId];
+                        }
+                    }
 
                     $wechatBotContact = WechatBotContact::where('wechat_bot_id', $this->id)
                         ->where('wechat_contact_id', $contact->id)->first();
@@ -336,17 +346,10 @@ class WechatBot extends Model
                         'seat_user_id' => $teamOwnerId,
                     ];// @see https://laravel.com/docs/8.x/eloquent-relationships#updating-many-to-many-relationships
                     
-                    // 2.记录 每个联系人的标签
-                    if($type == 'friend' && isset($data['labelIdList'])){
-                        $wxLabelIds = explode(',', $data['labelIdList']);
-                        foreach ($wxLabelIds as $wxLabelId) {
-                            $tags[$contact->id][] = $wxLabels[$wxLabelId];
-                        }
-                        $this->syncTags($tags);
-                    }
                 }
                 Log::info(__METHOD__, ["SyncWechat", "通讯录", $type, count($values)]);
             }
+            $this->syncTags($tags);
             $this->contacts()->syncWithoutDetaching($attachs);
             Log::debug(__METHOD__,['已同步', $this->wxid, $attachs]);
         }else{
