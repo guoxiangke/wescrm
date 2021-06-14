@@ -342,7 +342,7 @@ class WechatBot extends Model
                         foreach ($wxLabelIds as $wxLabelId) {
                             $tags[$contact->id][] = $wxLabels[$wxLabelId];
                         }
-                        // $thisContact->attachTag($tagName, $tagWith);
+                        $this->syncTags($tags);
                     }
                 }
                 Log::info(__METHOD__, ["SyncWechat", "通讯录", $type, count($values)]);
@@ -354,10 +354,10 @@ class WechatBot extends Model
         }
     }
 
-    public function syncTags()
+    public function syncTags($tags)
     {
         // 3.写入 每个联系人的标签
-        $tags = [];
+        // $tags = [];
         $tagWith = 'wechat-contact-team-' . $this->team->id;
         foreach ($tags as $contactId => $tagNames) {
             $wechatBotContact = WechatBotContact::where('wechat_bot_id', $this->id)

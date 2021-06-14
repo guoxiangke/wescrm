@@ -97,7 +97,6 @@ class WechatInitQueue implements ShouldQueue
                 }
                 
                 $wechatBot->syncContacts();
-                $wechatBot->syncTags();
                 // $wechat->init(); //为什么要init，不init可以用吗？
 
                 $response = $wechat->setCallBackUrl();

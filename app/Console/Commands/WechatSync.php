@@ -50,7 +50,6 @@ class WechatSync extends Command
             }else{
                 // Log::debug(__METHOD__, [$wechatBot->nickName, '上线时间', $wechatBot->login_at ]);
                 $wechatBot->syncContacts();
-                $wechatBot->syncTags();
                 $wechatBot->send('filehelper', WechatContent::make([
                     'name' => 'tmp',
                     'type' => WechatContent::TYPE_TEXT,
